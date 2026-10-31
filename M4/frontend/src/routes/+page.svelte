@@ -1,87 +1,98 @@
 <script>
 	import { resolve } from '$app/paths';
-	import {
-		ArrowUpRight,
-		ArrowRight,
-		Repeat2,
-		Layers3,
-		ReceiptText,
-		Wallet,
-		Check
-	} from '@lucide/svelte';
+	import { ArrowRight, Repeat2, ReceiptText, Wallet, Play } from '@lucide/svelte';
+	import { auth } from '#lib/auth/session.js';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { reveal } from '#lib/motion/reveal.js';
+	const customer = $derived($auth.user?.role === 'customer');
+	const subscriptionsPath = $derived(customer ? 'portal/subscriptions' : 'app/subscriptions');
+	const invoicesPath = $derived(customer ? 'portal/invoices' : 'app/invoices');
 </script>
 
 <svelte:head>
-	<title>Brightloop · A better rhythm for your business</title>
-	<meta
-		name="description"
-		content="Keep subscriptions, billing, and payments moving together with Brightloop."
-	/>
+	<title>Brightloop · Subscription management</title>
+	<meta name="description" content="Manage subscriptions, invoices, and payments in Brightloop." />
 </svelte:head>
 
-<div class="welcome" {@attach reveal}>
-	<header class="welcome-header">
-		<a class="brand" href={resolve('/')} aria-label="Brightloop home"
-			><span class="brand-symbol"><Repeat2 aria-hidden="true" /></span>brightloop<span
-				class="brand-dot">.</span
-			></a
-		>
-		<div class="flex items-center gap-3">
-			<span class="hidden text-xs text-muted-foreground sm:block">One workspace. Full clarity.</span
-			><Button href="/login" variant="outline" size="sm"
-				>Sign in<ArrowUpRight data-icon="inline-end" /></Button
-			>
+<div class="flex min-h-svh flex-col" {@attach reveal}>
+	<header class="border-b">
+		<div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+			<a class="brand" href={resolve('/')} aria-label="Brightloop home">
+				<span class="brand-symbol"><Repeat2 aria-hidden="true" /></span>Brightloop
+			</a>
+			{#if !$auth.user}<Button
+					href={resolve('/[...path]', { path: 'login' })}
+					variant="ghost"
+					size="sm">Sign in</Button
+				>{/if}
 		</div>
 	</header>
-
-	<main id="main-content" class="welcome-main">
-		<section class="intro">
-			<div data-reveal class="intro-label"><span></span>MAKE EVERY CYCLE COUNT</div>
-			<h1 data-reveal>Your business.<br />In a better <span>rhythm.</span></h1>
-			<p data-reveal class="intro-description">
-				From the first subscription to the next renewal. Bring your billing, payments, and customer
-				relationships into one clear view.
-			</p>
-			<div data-reveal class="flex flex-wrap items-center gap-4">
-				<Button href="/login" size="lg"
-					>Open your workspace<ArrowRight data-icon="inline-end" /></Button
-				><Button href="/signup" variant="ghost"
-					>Create an account<ArrowUpRight data-icon="inline-end" /></Button
+	<main
+		id="main-content"
+		class="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-12 sm:px-6 sm:py-20"
+	>
+		<div data-reveal class="flex flex-col gap-2">
+			<h1 class="text-2xl font-semibold tracking-tight">Subscription management</h1>
+			<p class="text-sm text-muted-foreground">Manage subscriptions, invoices, and payments.</p>
+		</div>
+		<div data-reveal>
+			<Card.Root>
+				<Card.Header
+					><Card.Title>Workspace</Card.Title><Card.Description
+						>Select a page to continue.</Card.Description
+					></Card.Header
 				>
-			</div>
-			<p data-reveal class="intro-note">
-				<Check aria-hidden="true" class="size-4" />Less chasing. More moving forward.
-			</p>
-		</section>
-
-		<section data-reveal class="cycle-panel" aria-label="Your business cycle, connected">
-			<div class="panel-heading">
-				<span class="text-xs font-medium text-muted-foreground">THE BRIGHTLOOP WAY</span><span
-					class="cycle-tag"><span></span>Always connected</span
-				>
-			</div>
-			<div class="cycle-art" aria-hidden="true">
-				<div class="cycle-ring ring-outer"></div>
-				<div class="cycle-ring ring-inner"></div>
-				<div class="cycle-center"><Repeat2 /><span>One continuous<br />flow.</span></div>
-				<span class="orbit-node node-one"><Layers3 /></span><span class="orbit-node node-two"
-					><ReceiptText /></span
-				><span class="orbit-node node-three"><Wallet /></span>
-				<span class="orbit-dot dot-one"></span><span class="orbit-dot dot-two"></span>
-			</div>
-			<div class="cycle-steps">
-				<span><b>01</b>Subscribe</span><ArrowRight aria-hidden="true" /><span><b>02</b>Bill</span
-				><ArrowRight aria-hidden="true" /><span><b>03</b>Grow</span>
-			</div>
-			<p class="panel-caption">A clear next step. At every step.</p>
-		</section>
+				<Card.Content>
+					<nav aria-label="Workspace pages" class="flex flex-col gap-1">
+						<Button
+							href={resolve('/[...path]', { path: subscriptionsPath })}
+							variant="ghost"
+							class="justify-start"
+							><Repeat2 data-icon="inline-start" />Subscriptions<ArrowRight
+								data-icon="inline-end"
+								class="ml-auto"
+							/></Button
+						>
+						<Button
+							href={resolve('/[...path]', { path: invoicesPath })}
+							variant="ghost"
+							class="justify-start"
+							><ReceiptText data-icon="inline-start" />Invoices<ArrowRight
+								data-icon="inline-end"
+								class="ml-auto"
+							/></Button
+						>
+						<Button
+							href={resolve('/[...path]', { path: customer ? 'portal/payments' : 'app/payments' })}
+							variant="ghost"
+							class="justify-start"
+							><Wallet data-icon="inline-start" />Payments<ArrowRight
+								data-icon="inline-end"
+								class="ml-auto"
+							/></Button
+						>
+						{#if !customer}<Button
+								href={resolve('/[...path]', { path: 'app/billing-runs' })}
+								variant="ghost"
+								class="justify-start"
+								><Play data-icon="inline-start" />Billing runs<ArrowRight
+									data-icon="inline-end"
+									class="ml-auto"
+								/></Button
+							>{/if}
+					</nav>
+				</Card.Content>
+				<Card.Footer class="flex flex-wrap gap-2">
+					<Button href={resolve('/[...path]', { path: $auth.user ? subscriptionsPath : 'login' })}
+						>Open your workspace<ArrowRight data-icon="inline-end" /></Button
+					>
+					{#if !$auth.user}<Button
+							href={resolve('/[...path]', { path: 'signup' })}
+							variant="outline">Create an account</Button
+						>{/if}
+				</Card.Footer>
+			</Card.Root>
+		</div>
 	</main>
-
-	<footer class="welcome-footer">
-		<span>Built for the business you’re building.</span><span class="flex items-center gap-2"
-			><span class="footer-mark"></span>Subscriptions, beautifully connected.</span
-		>
-	</footer>
 </div>

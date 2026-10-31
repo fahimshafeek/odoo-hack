@@ -8,12 +8,10 @@
 	const groups = $derived(navForRole(role, portal));
 </script>
 
-<nav aria-label={portal ? 'Your account' : 'Workspace'} class="flex flex-col gap-6">
+<nav aria-label={portal ? 'Your account' : 'Workspace'} class="flex flex-col gap-4">
 	{#each groups as group (group.title)}
-		<div class="flex flex-col gap-2">
-			<h2
-				class="px-3 text-[0.625rem] font-semibold tracking-widest text-muted-foreground uppercase"
-			>
+		<div class="flex flex-col gap-1">
+			<h2 class="px-3 py-1 text-xs font-medium text-muted-foreground">
 				{group.title}
 			</h2>
 			{#each group.items as item (item.path)}

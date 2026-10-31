@@ -8,11 +8,11 @@ export function reveal(element) {
 		({ conditions }) => {
 			if (!conditions?.motion) return;
 			gsap.from(element.querySelectorAll('[data-reveal]'), {
-				y: 16,
+				y: 4,
 				autoAlpha: 0,
-				duration: 0.65,
-				stagger: 0.09,
-				ease: 'power3.out'
+				duration: 0.2,
+				stagger: 0.025,
+				ease: 'power1.out'
 			});
 		},
 		element

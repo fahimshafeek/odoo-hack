@@ -7,7 +7,7 @@
 </script>
 
 <Alert.Root variant="destructive" role="alert"
-	><CircleAlert aria-hidden="true" /><Alert.Title>Something interrupted the flow</Alert.Title
+	><CircleAlert aria-hidden="true" /><Alert.Title>Unable to load data</Alert.Title
 	><Alert.Description
 		>{message}{#if onRetry}<div class="mt-3">
 				<Button variant="outline" onclick={onRetry}>Try again</Button>

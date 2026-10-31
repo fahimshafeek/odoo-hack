@@ -10,7 +10,7 @@
 				><Icon aria-hidden="true" /></Card.Action
 			>{/if}</Card.Header
 	><Card.Content
-		><p class="text-3xl font-semibold tracking-tight tabular-nums">{value}</p>
+		><p class="text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
 		{#if hint}<p class="mt-2 text-xs text-muted-foreground">{hint}</p>{/if}</Card.Content
 	></Card.Root
 >

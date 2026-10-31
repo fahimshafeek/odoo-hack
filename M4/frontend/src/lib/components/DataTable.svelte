@@ -50,7 +50,7 @@
 			action={emptyAction}
 		/>
 	{:else}
-		<div class="hidden overflow-hidden rounded-xl border bg-card md:block">
+		<div class="hidden overflow-hidden rounded-lg border bg-card md:block">
 			<Table.Root
 				><Table.Header
 					><Table.Row

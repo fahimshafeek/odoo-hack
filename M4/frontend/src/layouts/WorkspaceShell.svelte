@@ -41,15 +41,9 @@
 <div class={cn('workspace-shell', portal && 'portal-shell')}>
 	<aside class="workspace-sidebar">
 		<a href={resolve('/')} class="brand workspace-brand"
-			><span class="brand-symbol"><Repeat2 aria-hidden="true" /></span>brightloop<span
-				class="brand-dot">.</span
-			></a
+			><span class="brand-symbol"><Repeat2 aria-hidden="true" /></span>Brightloop</a
 		>
-		<div class="workspace-sidebar-label">{portal ? 'YOUR SPACE' : 'BUSINESS WORKSPACE'}</div>
 		<NavigationLinks role={user?.role} {portal} />
-		<div class="workspace-sidebar-footer">
-			<span class="footer-mark"></span>A clear view. Every cycle.
-		</div>
 	</aside>
 	<div class="workspace-body">
 		<header class="workspace-topbar">
