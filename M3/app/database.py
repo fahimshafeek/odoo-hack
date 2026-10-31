@@ -45,6 +45,8 @@ def get_session() -> Generator[Session, None, None]:
         session.close()
 
 
-def init_db(target_engine=None):
+def init_db(target_engine=None, reset: bool = False):
     eng = target_engine or engine
+    if reset:
+        Base.metadata.drop_all(bind=eng)
     Base.metadata.create_all(bind=eng)

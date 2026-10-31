@@ -99,7 +99,10 @@ def seed_demo_data(session: Session) -> dict[str, int]:
         end_date=curr_date + timedelta(days=30),
         is_active=True,
     )
-    session.add_all([disc_10, disc_fixed, disc_expired, disc_used_up])
+    for d in [disc_10, disc_fixed, disc_expired, disc_used_up]:
+        existing = session.query(Discount).filter_by(name=d.name).first()
+        if not existing:
+            session.add(d)
     session.flush()
 
     # 3. Create demo subscriptions
@@ -179,8 +182,14 @@ def seed_demo_data(session: Session) -> dict[str, int]:
             )
         ],
     )
-    session.add_all([sub1, sub2, sub3])
-    session.commit()
+    existing_sub = (
+        session.query(SubscriptionStub).filter_by(number="SUB-2026-000001").first()
+    )
+    if not existing_sub:
+        session.add_all([sub1, sub2, sub3])
+        session.commit()
+    else:
+        session.commit()
 
     # 4. Run billing engine for past dates to create initial invoices
     run_billing(
@@ -193,6 +202,8 @@ def seed_demo_data(session: Session) -> dict[str, int]:
     # 5. Transition invoices to create lifecycle mix
     invoices = session.query(Invoice).order_by(Invoice.issue_date).all()
     for idx, inv in enumerate(invoices):
+        if inv.status != "draft":
+            continue
         if idx == 0:
             # Fully Paid
             confirm_invoice(session, inv, admin_user)
@@ -238,7 +249,14 @@ def seed_demo_data(session: Session) -> dict[str, int]:
 
 
 if __name__ == "__main__":
-    init_db()
+    import sys
+
+    should_reset = "--reset" in sys.argv
+    if should_reset:
+        init_db(reset=True)
+    else:
+        init_db()
+
     with SessionLocal() as s:
         res = seed_demo_data(s)
         print("Seeded successfully:", res)
