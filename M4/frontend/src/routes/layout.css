@@ -79,6 +79,13 @@
 	[data-slot='button'] {
 		min-height: 2.5rem;
 	}
+	[data-slot='input'],
+	[data-slot='native-select'],
+	[data-slot='command-item'],
+	[data-slot='alert-dialog-cancel'],
+	[data-slot='alert-dialog-action'] {
+		min-height: 2.5rem;
+	}
 	[data-slot='button'][data-size='lg'] {
 		min-height: 3rem;
 	}

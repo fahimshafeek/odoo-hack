@@ -88,5 +88,13 @@ export const auth = {
 	setSession,
 	get user() {
 		return get(state).user;
+	},
+	get isLoading() {
+		return get(state).isLoading;
 	}
 };
+
+/** Svelte's AUTH-4 session is a readable store, with the same shared auth methods. */
+export function useAuth() {
+	return auth;
+}

@@ -9,5 +9,5 @@
 		"sourceMap": true,
 		"moduleResolution": "bundler"
 	},
-	"include": ["src", "vite.config.js", "playwright.config.js"]
+	"include": ["src", "vite.config.js", "playwright.config.js", "vitest-setup.js"]
 }

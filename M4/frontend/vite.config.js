@@ -3,6 +3,9 @@ import { fileURLToPath } from 'node:url';
 // Load native tool plugins through Node instead of bundling their binary bindings.
 const packages = ['@tailwindcss/vite', '@sveltejs/kit/vite', '@sveltejs/adapter-node'];
 const [tailwind, kit, node] = await Promise.all(packages.map((name) => import(name)));
+const testing = process.env.VITEST
+	? (await import('@testing-library/svelte/vite')).svelteTesting()
+	: [];
 
 export default {
 	// This CSS-only package has no JavaScript export for Vite's SSR resolver.
@@ -13,6 +16,11 @@ export default {
 			)
 		}
 	},
-	plugins: [tailwind.default(), kit.sveltekit({ adapter: node.default() })],
-	test: { environment: 'node', pool: 'threads', include: ['src/**/*.test.js'] }
+	plugins: [tailwind.default(), kit.sveltekit({ adapter: node.default() }), testing],
+	test: {
+		environment: 'jsdom',
+		setupFiles: ['./vitest-setup.js'],
+		pool: 'threads',
+		include: ['src/**/*.test.js']
+	}
 };

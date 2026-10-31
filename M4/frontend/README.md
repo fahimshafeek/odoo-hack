@@ -75,7 +75,15 @@ and Skeleton. `PageHeader`, `MoneyCell`, and the INR/date formatters are availab
 for feature owners. `src/layouts/navConfig.js` owns all role-filtered navigation.
 AdminLayout and PortalLayout mount under their guarded SvelteKit route trees,
 with a mobile drawer, breadcrumbs, role chip, account menu, and logout.
-The data table, status mapping, and form components are the next Phase 1 unit.
+The shared library now also includes DataTable, StatusBadge, loading/empty/error
+states, validated forms and fields, asynchronous comboboxes, ConfirmDialog,
+RoleGate, and mutation toasts. The development-only `/dev/styleguide` route is a
+component workshop; it does not save business records. See
+`../docs/modules/frontend.md` for the Svelte API and walkthrough.
+
+DOM-level tests run with Svelte Testing Library and jsdom. They cover table
+states and controls, accessible field errors, status rendering, and search timing.
+Subscription, billing, and portal screens are the next implementation stage.
 
 SvelteKit's JavaScript checking uses TypeScript 6. The API generator's compiler
 peer is overridden to that same version; API generation and checks validate the
