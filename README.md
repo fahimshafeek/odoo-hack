@@ -33,16 +33,16 @@ Brightloop brings the main stages of a subscription business together:
 
 | Area | Admin | Staff | Customer |
 | --- | :---: | :---: | :---: |
-| Sign in / manage own account | ✅ | ✅ | ✅ |
-| View staff operations dashboard | ✅ | ✅ | — |
-| Invite / manage staff users | ✅ | — | — |
-| List / manage customer records | ✅ | ✅ | Own profile only |
-| View product, plan, payment-term and tax catalogs | ✅ | ✅ | — |
-| Create / edit products, plans, payment terms, templates, and tax rules | ✅ | — | — |
-| Manage subscriptions and quotations | ✅ | ✅ | Own subscriptions and permitted actions |
-| View / manage internal invoices and payment records | ✅ | ✅ | Own invoices and payments |
-| Trigger and inspect billing runs | ✅ | ✅ | — |
-| View revenue reporting and export CSV | ✅ | ✅ | — |
+| Sign in / manage own account | YES | YES | YES |
+| View staff operations dashboard | YES | YES | — |
+| Invite / manage staff users | YES | — | — |
+| List / manage customer records | YES | YES | Own profile only |
+| View product, plan, payment-term and tax catalogs | YES | YES | — |
+| Create / edit products, plans, payment terms, templates, and tax rules | YES | — | — |
+| Manage subscriptions and quotations | YES | YES | Own subscriptions and permitted actions |
+| View / manage internal invoices and payment records | YES | YES | Own invoices and payments |
+| Trigger and inspect billing runs | YES | YES | — |
+| View revenue reporting and export CSV | YES | YES | — |
 
 Permissions are enforced in backend routes, not just hidden in the frontend. Certain operations have additional lifecycle/state restrictions.
 
