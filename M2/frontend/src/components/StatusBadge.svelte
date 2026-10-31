@@ -1,5 +1,9 @@
 <script lang="ts">
-  let { status = 'draft', text = '' } = $props<{ status?: string; text?: string }>();
+  interface Props {
+    status?: string;
+    text?: string;
+  }
+  let { status = 'draft', text = '' }: Props = $props();
 
   let displayLabel = $derived(text || status.toUpperCase());
 

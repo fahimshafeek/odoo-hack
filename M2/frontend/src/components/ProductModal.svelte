@@ -3,18 +3,31 @@
   import { formatMoney } from '../lib/format';
   import type { Product } from '../lib/types';
 
-  let { product = null, onclose = () => {}, onsaved = () => {} } = $props<{
+  interface Props {
     product?: Product | null;
     onclose?: () => void;
     onsaved?: () => void;
-  }>();
+  }
 
-  let name = $state(product ? product.name : '');
-  let type = $state(product ? product.type : 'software');
-  let salesPrice = $state(product ? product.sales_price : '1000.00');
-  let costPrice = $state(product ? product.cost_price : '400.00');
-  let notes = $state(product?.notes || '');
-  let isActive = $state(product ? product.is_active : true);
+  let { product = null, onclose = () => {}, onsaved = () => {} }: Props = $props();
+
+  let name = $state('');
+  let type = $state('software');
+  let salesPrice = $state('1000.00');
+  let costPrice = $state('400.00');
+  let notes = $state('');
+  let isActive = $state(true);
+
+  $effect(() => {
+    if (product) {
+      name = product.name;
+      type = product.type;
+      salesPrice = product.sales_price;
+      costPrice = product.cost_price;
+      notes = product.notes || '';
+      isActive = product.is_active;
+    }
+  });
 
   // New attribute form state
   let newAttrName = $state('');
@@ -93,7 +106,7 @@
       <h3 class="text-base font-semibold text-slate-900">
         {product ? 'Edit Product' : 'Create New Product'}
       </h3>
-      <button onclick={onclose} class="text-slate-400 hover:text-slate-600 rounded-md p-1">
+      <button onclick={() => onclose()} class="text-slate-400 hover:text-slate-600 rounded-md p-1">
         ✕
       </button>
     </div>
@@ -115,32 +128,36 @@
 
       <div class="grid grid-cols-2 gap-4">
         <div class="col-span-2">
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Product Name *</label>
-          <input
-            type="text"
-            required
-            bind:value={name}
-            placeholder="e.g. Odoo ERP"
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            Product Name *
+            <input
+              type="text"
+              required
+              bind:value={name}
+              placeholder="e.g. Odoo ERP"
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 mt-1 font-normal"
+            />
+          </label>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Type</label>
-          <select
-            bind:value={type}
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="software">Software</option>
-            <option value="license">License</option>
-            <option value="service">Service</option>
-            <option value="infrastructure">Infrastructure</option>
-            <option value="hardware">Hardware</option>
-          </select>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            Type
+            <select
+              bind:value={type}
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 mt-1 font-normal"
+            >
+              <option value="software">Software</option>
+              <option value="license">License</option>
+              <option value="service">Service</option>
+              <option value="infrastructure">Infrastructure</option>
+              <option value="hardware">Hardware</option>
+            </select>
+          </label>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Status</label>
+          <span class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Status</span>
           <label class="inline-flex items-center space-x-2 mt-2 cursor-pointer">
             <input type="checkbox" bind:checked={isActive} class="rounded text-emerald-600 focus:ring-emerald-500" />
             <span class="text-sm font-medium text-slate-700">Active</span>
@@ -148,33 +165,39 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Sales Price (₹) *</label>
-          <input
-            type="text"
-            required
-            bind:value={salesPrice}
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            Sales Price (₹) *
+            <input
+              type="text"
+              required
+              bind:value={salesPrice}
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 mt-1 font-normal"
+            />
+          </label>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Cost Price (₹) *</label>
-          <input
-            type="text"
-            required
-            bind:value={costPrice}
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            Cost Price (₹) *
+            <input
+              type="text"
+              required
+              bind:value={costPrice}
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 mt-1 font-normal"
+            />
+          </label>
         </div>
 
         <div class="col-span-2">
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Notes</label>
-          <textarea
-            bind:value={notes}
-            rows="2"
-            placeholder="Product specifications or internal details..."
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          ></textarea>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            Notes
+            <textarea
+              bind:value={notes}
+              rows="2"
+              placeholder="Product specifications or internal details..."
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 mt-1 font-normal"
+            ></textarea>
+          </label>
         </div>
       </div>
 
@@ -183,13 +206,13 @@
         <div class="pt-3 border-t border-slate-200">
           <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
             Variant Attribute (e.g. Brand)
+            <input
+              type="text"
+              bind:value={newAttrName}
+              placeholder="Attribute name (e.g. Brand, Tier, Edition)"
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg mb-2 mt-1 font-normal"
+            />
           </label>
-          <input
-            type="text"
-            bind:value={newAttrName}
-            placeholder="Attribute name (e.g. Brand, Tier, Edition)"
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg mb-2"
-          />
 
           {#if newAttrName}
             <div class="space-y-2 mt-2">
@@ -230,7 +253,7 @@
       <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
         <button
           type="button"
-          onclick={onclose}
+          onclick={() => onclose()}
           class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
         >
           Cancel

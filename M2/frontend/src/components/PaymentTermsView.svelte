@@ -167,26 +167,30 @@
 
       <form onsubmit={handleSave} class="p-6 space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Term Name *</label>
-          <input
-            type="text"
-            required
-            bind:value={termName}
-            placeholder="e.g. Net 15"
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            Term Name *
+            <input
+              type="text"
+              required
+              bind:value={termName}
+              placeholder="e.g. Net 15"
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 mt-1 font-normal"
+            />
+          </label>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Due Days (0–365) *</label>
-          <input
-            type="number"
-            min="0"
-            max="365"
-            required
-            bind:value={dueDays}
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            Due Days (0–365) *
+            <input
+              type="number"
+              min="0"
+              max="365"
+              required
+              bind:value={dueDays}
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 mt-1 font-normal"
+            />
+          </label>
         </div>
 
         <div class="flex justify-end space-x-2 pt-2">

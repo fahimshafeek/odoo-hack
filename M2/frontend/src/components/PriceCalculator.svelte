@@ -116,24 +116,26 @@
     <!-- Configurator (Left) -->
     <div class="lg:col-span-7 bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
       <div>
-        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Select Subscription Plan</label>
-        <select
-          bind:value={selectedPlanId}
-          onchange={updatePreview}
-          class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        >
-          <option value="">No Plan (Lines Only)</option>
-          {#each plans as p}
-            <option value={p.id}>{p.name} ({formatMoney(p.price)} / {p.billing_period})</option>
-          {/each}
-        </select>
+        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+          Select Subscription Plan
+          <select
+            bind:value={selectedPlanId}
+            onchange={updatePreview}
+            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 mt-1 font-normal"
+          >
+            <option value="">No Plan (Lines Only)</option>
+            {#each plans as p}
+              <option value={p.id}>{p.name} ({formatMoney(p.price)} / {p.billing_period})</option>
+            {/each}
+          </select>
+        </label>
       </div>
 
       <div>
         <div class="flex items-center justify-between mb-2">
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+          <span class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
             Configure Products & Variant Options
-          </label>
+          </span>
           <button
             type="button"
             onclick={addLine}

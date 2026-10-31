@@ -4,15 +4,25 @@
   import { formatMoney } from '../lib/format';
   import type { QuotationTemplate, Plan, Product } from '../lib/types';
 
-  let { template = null, onclose = () => {}, onsaved = () => {} } = $props<{
+  interface Props {
     template?: QuotationTemplate | null;
     onclose?: () => void;
     onsaved?: () => void;
-  }>();
+  }
 
-  let name = $state(template ? template.name : '');
-  let planId = $state(template?.plan_id || (template?.plan ? template.plan.id : ''));
-  let validityDays = $state(template ? template.validity_days : 30);
+  let { template = null, onclose = () => {}, onsaved = () => {} }: Props = $props();
+
+  let name = $state('');
+  let planId = $state('');
+  let validityDays = $state(30);
+
+  $effect(() => {
+    if (template) {
+      name = template.name;
+      planId = template.plan_id || (template.plan ? template.plan.id : '');
+      validityDays = template.validity_days;
+    }
+  });
 
   let plans = $state<Plan[]>([]);
   let products = $state<Product[]>([]);
@@ -115,7 +125,7 @@
       <h3 class="text-base font-semibold text-slate-900">
         {template ? 'Edit Quotation Template' : 'Create Quotation Template'}
       </h3>
-      <button onclick={onclose} class="text-slate-400 hover:text-slate-600">✕</button>
+      <button onclick={() => onclose()} class="text-slate-400 hover:text-slate-600">✕</button>
     </div>
 
     <form onsubmit={handleSubmit} class="p-6 space-y-4">
@@ -127,48 +137,54 @@
 
       <div class="grid grid-cols-2 gap-4">
         <div class="col-span-2">
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Template Name *</label>
-          <input
-            type="text"
-            required
-            bind:value={name}
-            placeholder="e.g. Standard Cloud ERP Onboarding"
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            Template Name *
+            <input
+              type="text"
+              required
+              bind:value={name}
+              placeholder="e.g. Standard Cloud ERP Onboarding"
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 mt-1 font-normal"
+            />
+          </label>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Attached Plan *</label>
-          <select
-            bind:value={planId}
-            required
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            {#each plans as p}
-              <option value={p.id}>{p.name} ({formatMoney(p.price)} / {p.billing_period})</option>
-            {/each}
-          </select>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            Attached Plan *
+            <select
+              bind:value={planId}
+              required
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 mt-1 font-normal"
+            >
+              {#each plans as p}
+                <option value={p.id}>{p.name} ({formatMoney(p.price)} / {p.billing_period})</option>
+              {/each}
+            </select>
+          </label>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Quote Validity (Days) *</label>
-          <input
-            type="number"
-            min="1"
-            max="365"
-            required
-            bind:value={validityDays}
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            Quote Validity (Days) *
+            <input
+              type="number"
+              min="1"
+              max="365"
+              required
+              bind:value={validityDays}
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 mt-1 font-normal"
+            />
+          </label>
         </div>
       </div>
 
       <!-- Template Line Items -->
       <div class="pt-4 border-t border-slate-200">
         <div class="flex items-center justify-between mb-2">
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+          <span class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
             Template Line Items
-          </label>
+          </span>
           <button
             type="button"
             onclick={addLine}
@@ -253,7 +269,7 @@
       <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
         <button
           type="button"
-          onclick={onclose}
+          onclick={() => onclose()}
           class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
         >
           Cancel

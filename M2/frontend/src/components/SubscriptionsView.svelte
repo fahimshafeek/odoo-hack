@@ -64,7 +64,7 @@
 
       if (currentRole === 'customer') {
         detail = await api.getPortalSubscription(sub.id);
-        hist = await api.apiFetch?.(`/me/subscriptions/${sub.id}/history`) || [];
+        hist = await api.getSubscriptionHistory(sub.id);
       } else {
         detail = await api.getSubscription(sub.id);
         hist = await api.getSubscriptionHistory(sub.id);
@@ -485,20 +485,26 @@
           <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">Option 2: Custom Draft Subscription</span>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Plan</label>
-              <select bind:value={newPlanId} class="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg">
-                {#each availablePlans as p}
-                  <option value={p.id}>{p.name} ({formatMoney(p.price)})</option>
-                {/each}
-              </select>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">
+                Plan
+                <select bind:value={newPlanId} class="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg mt-1 font-normal">
+                  {#each availablePlans as p}
+                    <option value={p.id}>{p.name} ({formatMoney(p.price)})</option>
+                  {/each}
+                </select>
+              </label>
             </div>
             <div>
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Start Date</label>
-              <input type="date" bind:value={newStartDate} class="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg" />
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">
+                Start Date
+                <input type="date" bind:value={newStartDate} class="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg mt-1 font-normal" />
+              </label>
             </div>
             <div>
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Expiry Date</label>
-              <input type="date" bind:value={newExpiryDate} class="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg" />
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">
+                Expiry Date
+                <input type="date" bind:value={newExpiryDate} class="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg mt-1 font-normal" />
+              </label>
             </div>
           </div>
 

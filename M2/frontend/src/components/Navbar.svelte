@@ -1,7 +1,10 @@
 <script lang="ts">
   import { setRole, currentRole } from '../lib/api';
 
-  let { activeTab = $bindable('subscriptions') } = $props<{ activeTab: string }>();
+  interface Props {
+    activeTab?: string;
+  }
+  let { activeTab = $bindable('subscriptions') }: Props = $props();
 
   let role = $state<'admin' | 'staff' | 'customer'>(currentRole);
 
