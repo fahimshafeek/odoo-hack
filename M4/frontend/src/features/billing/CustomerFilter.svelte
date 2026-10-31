@@ -23,7 +23,9 @@
 			loadOptions={loadCustomers}
 		/>
 		<div class="flex items-center gap-2">
-			<Button variant="outline" type="submit" size="sm">Apply customer</Button>{#if value}<Button
+			<Button data-active={Boolean(value)} variant="outline" type="submit" size="sm"
+				>Apply customer</Button
+			>{#if value}<Button
 					variant="ghost"
 					size="sm"
 					onclick={() => {

@@ -43,6 +43,7 @@
 				{...props}
 				{id}
 				{disabled}
+				data-active={Boolean(value)}
 				variant="outline"
 				class="w-full justify-between"
 				aria-label={label}

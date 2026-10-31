@@ -135,7 +135,7 @@
 		</PageHeader>
 	</div>
 	<div data-reveal class="mb-4">
-		<FilterBar>
+		<FilterBar params={params.value} onChange={params.update}>
 			<SearchInput
 				value={params.value.q}
 				placeholder="Search subscriptions…"
@@ -169,6 +169,7 @@
 						customerForm.reset({ customer_id: String(params.value.customer_id ?? '') });
 						customerOpen = true;
 					}}
+					data-active={Boolean(params.value.customer_id)}
 					><Users data-icon="inline-start" />{params.value.customer_id
 						? 'Customer selected'
 						: 'Customer'}</Button

@@ -72,7 +72,7 @@
 	</div>
 	<div data-reveal>
 		<Tabs.Root
-			value={String(list.value.payment_filter ?? 'all')}
+			value={String(list.value.payment_filter || 'all')}
 			onValueChange={(/** @type {string} */ value) =>
 				list.update({ payment_filter: value === 'all' ? '' : value })}
 			><Tabs.List aria-label="Payment filter"
@@ -97,7 +97,7 @@
 			emptyTitle="No invoices found"
 			emptyDescription="Invoices appear when subscriptions are billed."
 		>
-			{#snippet toolbar()}<FilterBar
+			{#snippet toolbar()}<FilterBar params={list.value} onChange={list.update}
 					><SearchInput
 						value={list.value.q}
 						onChange={(q) => list.update({ q })}

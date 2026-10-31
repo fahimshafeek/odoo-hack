@@ -64,7 +64,7 @@
 			emptyTitle="No payments found"
 			emptyDescription="Try adjusting your filters."
 		>
-			{#snippet toolbar()}<FilterBar
+			{#snippet toolbar()}<FilterBar params={list.value} onChange={list.update}
 					><SearchInput
 						value={list.value.q}
 						onChange={(q) => list.update({ q })}
