@@ -5,6 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev --configLoader native",
+		"dev:preview": "node scripts/preview-frontend.mjs",
 		"build": "vite build --configLoader native",
 		"preview": "vite preview --configLoader native",
 		"prepare": "svelte-kit sync",
@@ -75,5 +76,10 @@
 		"openapi-typescript": {
 			"typescript": "^6.0.3"
 		}
+	},
+	"msw": {
+		"workerDirectory": [
+			"static"
+		]
 	}
 }

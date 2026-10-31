@@ -9,6 +9,7 @@ const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 
 export default defineConfig([
 	includeIgnoreFile(gitignorePath),
+	{ ignores: ['static/mockServiceWorker.js'] },
 	js.configs.recommended,
 	svelte.configs.recommended,
 	prettier,

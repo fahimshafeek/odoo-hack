@@ -15,9 +15,31 @@ Node 22.12+ is required. All fonts/icons are bundled; installed builds run
 without external asset services. Docker uses the same dev server on port 5173.
 M1 can use `M4/frontend` as the compose web build context; compose is not edited here.
 
-## Phase 0 hand-off
+## Frontend preview
 
-- `/` is the initial visual foundation. Business/auth pages are explicit placeholders.
+Run `npm run dev:preview` and open `http://127.0.0.1:5173/app/subscriptions`.
+This development-only mode supplies sample records without a backend. The preview
+toolbar switches admin/staff/customer roles and loading, empty, and error states.
+Reset restores sample records. Actions, payments, PDFs, and billing runs are
+simulated locally; no email is sent and no database is changed. Production builds
+exclude the fixture modules, and `npm run dev` keeps mocks off by default.
+
+| Page                                 | Route                                                |
+| ------------------------------------ | ---------------------------------------------------- |
+| Subscriptions / new / details / edit | `/app/subscriptions`, `/new`, `/:id`, `/:id/edit`    |
+| Invoices / details                   | `/app/invoices`, `/app/invoices/:id`                 |
+| Payments                             | `/app/payments`                                      |
+| Billing runs                         | `/app/billing-runs`                                  |
+| Customer subscriptions / details     | `/portal/subscriptions`, `/portal/subscriptions/:id` |
+| Customer invoices / details          | `/portal/invoices`, `/portal/invoices/:id`           |
+
+Other members own authentication, dashboard, catalog, rules, customer management,
+profile, and payment history. Their current route components are placeholders.
+Live API integration and the seeded golden-flow verification are deferred.
+
+## Foundation hand-off
+
+- `/` provides a simple workspace entry point with direct page links.
 - `src/features/*/routes.js` is the one-time skeleton hand-off. Owners replace
   their placeholder components. Route manifests retain the canonical URL and roles,
   using Svelte components instead of React elements. SvelteKit owns routing.
@@ -36,8 +58,8 @@ M1 can use `M4/frontend` as the compose web build context; compose is not edited
 - `npm run gen:api` fetches the live OpenAPI contract and updates the snapshot;
   it falls back to that snapshot when offline. The current snapshot contains only
   the provisional A4 auth contract. Regenerate when the backend G3 schemas arrive.
-- Mocks default to **off**. MSW is installed but no mock business handlers or
-  startup wiring are supplied before G3. No business data is hardcoded in the UI.
+- Mocks default to **off**. Only `dev:preview` enables the isolated development
+  worker. Feature components import API helpers, never sample business records.
 
 ## Checks
 
@@ -57,12 +79,12 @@ The browser suite covers 375/768/1280px, page errors, horizontal overflow,
 anonymous redirects, and reduced motion. Screenshots go to ignored `test-results/`.
 Native config loading avoids bundling native tool bindings on Windows.
 
-## Next gate
+## Integration gate
 
-Phase 1 supplies shared components and admin/portal layouts. G3 supplies the full
-backend contract. Phase 2 adds subscription, invoice/payment, billing-run, and
-portal screens. Business actions come from server `allowed_actions`; prices and
-billing calculations remain on the server.
+Shared components, admin/portal layouts, and M4's business screens are implemented.
+The next stage validates them against the full backend contract. Business actions
+come from server `allowed_actions`; prices and billing calculations remain on the
+server. The preview's isolated response generator is not a production billing engine.
 
 Work stays on `main` with conventional commits authored by the configured human
 identity, following the user's latest instruction. Ask before a push unless that
@@ -83,7 +105,7 @@ component workshop; it does not save business records. See
 
 DOM-level tests run with Svelte Testing Library and jsdom. They cover table
 states and controls, accessible field errors, status rendering, and search timing.
-Subscription, billing, and portal screens are the next implementation stage.
+Subscription, billing, and portal screens use these shared components.
 
 SvelteKit's JavaScript checking uses TypeScript 6. The API generator's compiler
 peer is overridden to that same version; API generation and checks validate the

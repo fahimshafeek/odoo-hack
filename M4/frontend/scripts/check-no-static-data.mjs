@@ -21,7 +21,15 @@ async function scan(directory) {
 		) {
 			failures.push(`${name}: JSON data import`);
 		}
-		if (/(?:from\s*|import\s*\(\s*)["'][^"']*(?:api\/mocks|\.\/mocks)/.test(content)) {
+		const guardedPreviewBootstrap =
+			name === 'hooks.client.js' &&
+			/import\.meta\.env\.DEV\s*&&\s*import\.meta\.env\.VITE_USE_MOCKS\s*===\s*['"]true['"]/.test(
+				content
+			);
+		if (
+			/(?:from\s*|import\s*\(\s*)["'][^"']*(?:api\/mocks|\.\/mocks)/.test(content) &&
+			!guardedPreviewBootstrap
+		) {
 			failures.push(`${name}: mock import in production source`);
 		}
 		if (name.startsWith('features/') && !name.endsWith('/routes.js')) {
@@ -29,7 +37,13 @@ async function scan(directory) {
 				if (
 					ts.isArrayLiteralExpression(node) &&
 					node.elements.length >= 3 &&
-					node.elements.every(ts.isObjectLiteralExpression)
+					node.elements.every(ts.isObjectLiteralExpression) &&
+					!node.elements.every((element) => {
+						const keys = /** @type {import('typescript').ObjectLiteralExpression} */ (
+							element
+						).properties.map((property) => property.name?.getText(script));
+						return keys.includes('key') && keys.includes('header');
+					})
 				) {
 					failures.push(`${name}: embedded business record array`);
 				}

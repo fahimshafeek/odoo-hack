@@ -37,10 +37,18 @@ and `openPdf` uses the shared authenticated client with a short-lived blob URL.
 
 ## Demo and failure handling
 
-Run `npm run dev`, then open `/dev/styleguide`. Try invalid fields, status chips,
-the loading/error toggles, and a confirmation. The route is unavailable in
-production and is not in product navigation. Sign-in and other teammates' feature
-pages remain their responsibility. Private routes verify `/auth/me`; expired
-sessions clear identity and cached queries. API failures display readable errors
-and retries. Mocks are off; full API integration and the golden flow await the
-backend gates. Browser screenshots remain unverified in the restricted runtime.
+Run `npm run dev:preview`, then open `/app/subscriptions`. Create a draft, inspect
+its lines and history, open `/app/invoices`, record partial/full sample payments,
+and run billing twice at `/app/billing-runs`. Switch to Customer in the preview
+toolbar to inspect portal cards and invoice details; use its scenario selector
+for loading/empty/error states. This mode uses an isolated MSW worker and never
+updates a database or sends email. Normal dev defaults to mocks off; production
+excludes the fixture modules. Prices and allowed actions come through the API
+boundary even in preview. Sign-in and teammates' features remain their responsibility.
+
+`/dev/styleguide` demonstrates shared components and is unavailable in production.
+Private routes verify `/auth/me`; expired sessions clear identity and query caches.
+API failures display readable errors and retries. Live backend integration, the
+seeded golden flow, and browser screenshots remain pending; browser execution is
+blocked in this restricted runtime. The frontend uses neutral shadcn tokens and
+compact layouts; GSAP preserves cleanup and reduced-motion support.
