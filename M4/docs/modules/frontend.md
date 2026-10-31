@@ -41,7 +41,7 @@ Run `npm run dev:preview`, then open `/app/subscriptions`. Create a draft, inspe
 its lines and history, open `/app/invoices`, record partial/full sample payments,
 and run billing twice at `/app/billing-runs`. Switch to Customer in the preview
 toolbar to inspect portal cards and invoice details; use its scenario selector
-for loading/empty/error states. This mode uses an isolated MSW worker and never
+for loading/empty/error states. This mode uses isolated MSW handlers through an explicit API transport and never
 updates a database or sends email. Normal dev defaults to mocks off; production
 excludes the fixture modules. Prices and allowed actions come through the API
 boundary even in preview. Sign-in and teammates' features remain their responsibility.

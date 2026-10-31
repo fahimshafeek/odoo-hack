@@ -1,11 +1,23 @@
 import createClient from 'openapi-fetch';
 import { ApiError } from './errors.js';
 
+/** @type {typeof fetch | undefined} */
+let transport;
+
+/** Install an explicit transport during development preview initialization. @param {typeof fetch | undefined} next */
+export function setApiTransport(next) {
+	transport = next;
+}
+
 /**
  * Build the A6 client with per-session credentials and normalized errors.
  * @param {{getToken: () => string | null, onUnauthorized: () => void, fetcher?: typeof fetch}} options
  */
-export function createApiClient({ getToken, onUnauthorized, fetcher = fetch }) {
+export function createApiClient({
+	getToken,
+	onUnauthorized,
+	fetcher = (input, init) => (transport ?? fetch)(input, init)
+}) {
 	/** @type {import('openapi-fetch').Client<import('./schema').paths>} */
 	const client = createClient({
 		baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:8000',

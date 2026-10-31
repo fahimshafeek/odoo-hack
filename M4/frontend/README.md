@@ -65,7 +65,7 @@ Live API integration and the seeded golden-flow verification are deferred.
   it falls back to that snapshot when offline. The current snapshot contains only
   the provisional A4 auth contract. Regenerate when the backend G3 schemas arrive.
 - Mocks default to **off**. Only `dev:preview` enables the isolated development
-  worker. Feature components import API helpers, never sample business records.
+  local MSW handlers through the API transport. Feature components import API helpers, never sample business records.
 
 ## Checks
 
