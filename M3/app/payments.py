@@ -92,6 +92,7 @@ def record_payment(
         method=data.method,
         amount=data.amount,
         paid_on=payment_date,
+        reference=data.reference,
         note=data.note,
         recorded_by=user.id,
     )

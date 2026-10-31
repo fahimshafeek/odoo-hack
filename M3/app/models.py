@@ -226,6 +226,9 @@ class Invoice(Base):
     amount_paid: Mapped[Decimal] = mapped_column(
         Numeric(12, 2), default=Decimal("0.00"), nullable=False
     )
+    razorpay_order_id: Mapped[str | None] = mapped_column(
+        String(100), nullable=True, index=True
+    )
 
     confirmed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
@@ -337,6 +340,7 @@ class Payment(Base):
     )  # cash|bank_transfer|card|upi|cheque|online
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     paid_on: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    reference: Mapped[str | None] = mapped_column(String(100), nullable=True)
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
     recorded_by: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True)
 

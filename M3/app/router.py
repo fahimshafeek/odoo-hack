@@ -9,16 +9,27 @@ import uuid
 from datetime import date
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, Query, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.core_compat import AppError, AuthUser, require_role, today
+from app.core_compat import (
+    AppError,
+    AuthUser,
+    assert_customer_owns,
+    require_role,
+    today,
+)
 from app.database import SessionLocal, get_session
 from app.engine import run_billing
 from app.models import BillingRun, Invoice, Payment
 from app.payments import mock_pay, record_payment
 from app.pdf import generate_invoice_pdf
+from app.razorpay_client import (
+    create_razorpay_order,
+    verify_razorpay_signature,
+    verify_razorpay_webhook_signature,
+)
 from app.schemas import (
     BillingRunOut,
     BillingRunTriggerInput,
@@ -29,6 +40,9 @@ from app.schemas import (
     MockPayInput,
     PaymentCreate,
     PaymentOut,
+    RazorpayOrderOut,
+    RazorpayVerifyInput,
+    RazorpayVerifyResponse,
     TaxCreate,
     TaxOut,
     TaxUpdate,
@@ -458,3 +472,243 @@ def portal_list_payments(
     )
     payments = session.scalars(stmt).all()
     return [PaymentOut.model_validate(p) for p in payments]
+
+
+@portal_router.post(
+    "/invoices/{invoice_id}/razorpay/order",
+    response_model=RazorpayOrderOut,
+    summary="Portal: Create Razorpay order for invoice balance",
+)
+def portal_create_razorpay_order(
+    invoice_id: uuid.UUID,
+    session: Session = Depends(get_session),
+    user: AuthUser = Depends(get_current_user),
+):
+    inv = session.get(Invoice, invoice_id)
+    if not inv:
+        raise AppError("not_found", "Invoice not found", status=404)
+    assert_customer_owns(user, inv.customer_id)
+    if inv.status != "confirmed":
+        raise AppError(
+            "invoice_not_payable",
+            f"Cannot create Razorpay order for invoice in '{inv.status}' status",
+            status=409,
+        )
+    balance = inv.total - inv.amount_paid
+    if balance <= 0:
+        raise AppError(
+            "invoice_already_paid", "Invoice has already been settled", status=409
+        )
+
+    order_data = create_razorpay_order(
+        amount=balance,
+        invoice_number=inv.number,
+        invoice_id=inv.id,
+        customer_id=inv.customer_id,
+    )
+    inv.razorpay_order_id = order_data["id"]
+    session.commit()
+
+    return RazorpayOrderOut(
+        order_id=order_data["id"],
+        amount=order_data["amount"],
+        currency=order_data.get("currency", "INR"),
+        key_id=order_data["key_id"],
+        invoice_id=inv.id,
+        invoice_number=inv.number,
+        balance=balance,
+    )
+
+
+@portal_router.post(
+    "/invoices/{invoice_id}/razorpay/verify",
+    response_model=RazorpayVerifyResponse,
+    summary="Portal: Verify Razorpay signature and capture payment",
+)
+def portal_verify_razorpay_payment(
+    invoice_id: uuid.UUID,
+    data: RazorpayVerifyInput,
+    session: Session = Depends(get_session),
+    user: AuthUser = Depends(get_current_user),
+):
+    inv = session.get(Invoice, invoice_id)
+    if not inv:
+        raise AppError("not_found", "Invoice not found", status=404)
+    assert_customer_owns(user, inv.customer_id)
+
+    # 1. Cryptographically verify signature
+    valid = verify_razorpay_signature(
+        data.razorpay_order_id,
+        data.razorpay_payment_id,
+        data.razorpay_signature,
+    )
+    if not valid:
+        raise AppError(
+            "invalid_signature", "Invalid Razorpay payment signature", status=400
+        )
+
+    # 2. Check if payment already recorded (idempotency guard)
+    existing_payment = session.scalar(
+        select(Payment).where(
+            Payment.invoice_id == invoice_id,
+            Payment.reference == data.razorpay_payment_id,
+        )
+    )
+    if existing_payment:
+        inv_refresh = session.get(Invoice, invoice_id)
+        return RazorpayVerifyResponse(
+            success=True,
+            message="Payment already verified and recorded",
+            payment=PaymentOut.model_validate(existing_payment),
+            invoice_status=inv_refresh.status,
+            remaining_balance=inv_refresh.total - inv_refresh.amount_paid,
+        )
+
+    # 3. Record payment for remaining balance
+    balance = inv.total - inv.amount_paid
+    if balance <= 0:
+        raise AppError(
+            "invoice_already_paid", "Invoice is already fully paid", status=409
+        )
+
+    payment = record_payment(
+        session,
+        invoice_id,
+        PaymentCreate(
+            method="online",
+            amount=balance,
+            reference=data.razorpay_payment_id,
+            note=f"Razorpay online payment (Order: {data.razorpay_order_id})",
+        ),
+        user,
+    )
+    session.commit()
+    session.refresh(inv)
+
+    return RazorpayVerifyResponse(
+        success=True,
+        message="Payment verified and recorded successfully",
+        payment=PaymentOut.model_validate(payment),
+        invoice_status=inv.status,
+        remaining_balance=inv.total - inv.amount_paid,
+    )
+
+
+# -----------------------------------------------------------------------------
+# Staff/Admin Razorpay & Webhook Endpoints
+# -----------------------------------------------------------------------------
+@router.post(
+    "/invoices/{invoice_id}/razorpay/order",
+    response_model=RazorpayOrderOut,
+    summary="Admin/Staff: Generate Razorpay order for an invoice",
+)
+def api_admin_create_razorpay_order(
+    invoice_id: uuid.UUID,
+    session: Session = Depends(get_session),
+    user: AuthUser = Depends(get_current_user),
+):
+    require_role("admin", "staff")(user)
+    inv = session.get(Invoice, invoice_id)
+    if not inv:
+        raise AppError("not_found", "Invoice not found", status=404)
+    if inv.status != "confirmed":
+        raise AppError(
+            "invoice_not_payable",
+            f"Cannot create Razorpay order for invoice in '{inv.status}' status",
+            status=409,
+        )
+    balance = inv.total - inv.amount_paid
+    if balance <= 0:
+        raise AppError(
+            "invoice_already_paid", "Invoice has already been settled", status=409
+        )
+
+    order_data = create_razorpay_order(
+        amount=balance,
+        invoice_number=inv.number,
+        invoice_id=inv.id,
+        customer_id=inv.customer_id,
+    )
+    inv.razorpay_order_id = order_data["id"]
+    session.commit()
+
+    return RazorpayOrderOut(
+        order_id=order_data["id"],
+        amount=order_data["amount"],
+        currency=order_data.get("currency", "INR"),
+        key_id=order_data["key_id"],
+        invoice_id=inv.id,
+        invoice_number=inv.number,
+        balance=balance,
+    )
+
+
+@router.post(
+    "/razorpay/webhook",
+    summary="Razorpay Webhook Handler",
+)
+async def razorpay_webhook(
+    request: Request,
+    session: Session = Depends(get_session),
+):
+    body_bytes = await request.body()
+    signature = request.headers.get("X-Razorpay-Signature")
+
+    from app.config import RAZORPAY_WEBHOOK_SECRET
+
+    if RAZORPAY_WEBHOOK_SECRET:
+        if not signature or not verify_razorpay_webhook_signature(
+            body_bytes, signature
+        ):
+            raise AppError(
+                "invalid_signature", "Invalid Razorpay webhook signature", status=400
+            )
+
+    try:
+        import json
+
+        payload = json.loads(body_bytes.decode("utf-8"))
+    except Exception:
+        return {"status": "ignored"}
+
+    event = payload.get("event")
+    if event in ("payment.captured", "order.paid"):
+        payment_entity = payload.get("payload", {}).get("payment", {}).get("entity", {})
+        order_id = payment_entity.get("order_id")
+        payment_id = payment_entity.get("id")
+        amount_paise = payment_entity.get("amount", 0)
+        from decimal import Decimal
+
+        amount_inr = Decimal(str(amount_paise)) / Decimal(100)
+
+        if order_id and payment_id:
+            inv = session.scalar(
+                select(Invoice).where(Invoice.razorpay_order_id == order_id)
+            )
+            if inv and inv.status == "confirmed":
+                existing = session.scalar(
+                    select(Payment).where(Payment.reference == payment_id)
+                )
+                if not existing:
+                    system_user = AuthUser(
+                        id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                        email="system@brightloop.com",
+                        role="admin",
+                        full_name="Razorpay Webhook",
+                    )
+                    pay_amt = min(amount_inr, inv.total - inv.amount_paid)
+                    if pay_amt > 0:
+                        record_payment(
+                            session,
+                            inv.id,
+                            PaymentCreate(
+                                method="online",
+                                amount=pay_amt,
+                                reference=payment_id,
+                                note=f"Razorpay webhook payment {payment_id}",
+                            ),
+                            system_user,
+                        )
+                        session.commit()
+
+    return {"status": "ok"}
