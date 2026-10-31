@@ -1,8 +1,7 @@
 import os
 from sqlalchemy import create_engine, MetaData, event
 from sqlalchemy.orm import declarative_base, sessionmaker
-
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./brightloop.db")
+from app.core.config import DATABASE_URL
 
 convention = {
     "ix": "ix_%(column_0_label)s",

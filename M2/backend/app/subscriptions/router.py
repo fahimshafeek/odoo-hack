@@ -4,7 +4,8 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 from app.core.database import get_session
-from app.core.deps import AuthUser, require_role
+from app.core.deps import AuthUser, require_role, assert_customer_owns
+from app.core.errors import AppError
 from app.core.pagination import PageParams, page_params, Page
 from app.subscriptions.schemas import (
     SubscriptionCreate,
@@ -101,10 +102,13 @@ def create_from_template_endpoint(
 )
 def get_subscription_endpoint(
     id: uuid.UUID,
-    user: AuthUser = Depends(require_role("admin", "staff")),
+    user: AuthUser = Depends(require_role("admin", "staff", "customer")),
     session: Session = Depends(get_session),
 ):
     sub = service.get_sub_or_404(session, id)
+    assert_customer_owns(user, sub.customer_id)
+    if user.role == "customer" and sub.status == "draft":
+        raise AppError("not_found", "Subscription not found", 404)
     return service.build_subscription_detail(sub, user)
 
 
@@ -162,7 +166,7 @@ def transition_subscription_endpoint(
 )
 def get_subscription_history_endpoint(
     id: uuid.UUID,
-    user: AuthUser = Depends(require_role("admin", "staff")),
+    user: AuthUser = Depends(require_role("admin", "staff", "customer")),
     session: Session = Depends(get_session),
 ):
     return service.get_history(session, id, user)
