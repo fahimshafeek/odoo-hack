@@ -3,7 +3,7 @@
 	import { createForm } from '#lib/forms/form.js';
 	import { formatMoney } from '#lib/format.js';
 	import { notify } from '#lib/notify.js';
-	import { CreditCard, Link, ExternalLink, LoaderCircle, Sparkles } from '@lucide/svelte';
+	import { CreditCard, LoaderCircle } from '@lucide/svelte';
 	import {
 		Form,
 		MoneyField,
@@ -13,7 +13,6 @@
 	} from '#lib/components/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Dialog from '#lib/components/ui/dialog/index.js';
-	import * as Tabs from '#lib/components/ui/tabs/index.js';
 	import { request } from '#src/api/resources.js';
 	import { useBillingInvalidation } from './api.js';
 	import { indiaToday, paymentSchema } from './payment-validation.js';
@@ -31,7 +30,6 @@
 	);
 	const invalidate = useBillingInvalidation();
 	let razorpayLoading = $state(false);
-	let activeTab = $state(untrack(() => (portal ? 'razorpay' : 'manual')));
 
 	const methods = ['cash', 'bank_transfer', 'card', 'upi', 'cheque', 'online'].map((value) => ({
 		value,
@@ -141,71 +139,32 @@
 		</div>
 
 		{#if portal}
-			<Tabs.Root value={activeTab} onValueChange={(val) => (activeTab = val)}>
-				<Tabs.List class="grid grid-cols-2">
-					<Tabs.Trigger value="razorpay">
-						<CreditCard class="mr-2 h-4 w-4" />
-						Razorpay
-					</Tabs.Trigger>
-					<Tabs.Trigger value="demo">
-						<Sparkles class="mr-2 h-4 w-4" />
-						Instant Demo
-					</Tabs.Trigger>
-				</Tabs.List>
-
-				<Tabs.Content value="razorpay" class="flex flex-col gap-4 pt-4">
-					<div class="rounded-lg border p-4 bg-muted/40 flex flex-col gap-2">
-						<div class="flex items-center gap-2 font-medium text-sm">
-							<CreditCard class="h-4 w-4 text-primary" />
-							Online Payment via Razorpay
-						</div>
-						<p class="text-xs text-muted-foreground">
-							Pay securely using UPI, Credit/Debit cards, Netbanking, or mobile wallets.
-						</p>
+			<div class="flex flex-col gap-4 pt-2">
+				<div class="rounded-lg border p-4 bg-muted/40 flex flex-col gap-2">
+					<div class="flex items-center gap-2 font-medium text-sm">
+						<CreditCard class="h-4 w-4 text-primary" />
+						Online Payment via Razorpay
 					</div>
-
-					<Dialog.Footer class="pt-2">
-						<Button variant="outline" disabled={razorpayLoading} onclick={() => onOpenChange(false)}>
-							Cancel
-						</Button>
-						<Button onclick={payWithRazorpay} disabled={razorpayLoading} aria-busy={razorpayLoading}>
-							{#if razorpayLoading}
-								<LoaderCircle class="mr-2 h-4 w-4 motion-safe:animate-spin" />
-								Connecting…
-							{:else}
-								<CreditCard class="mr-2 h-4 w-4" />
-								Pay {formatMoney(invoice.balance)}
-							{/if}
-						</Button>
-					</Dialog.Footer>
-				</Tabs.Content>
-
-				<Tabs.Content value="demo" class="pt-4">
-					<p class="text-xs text-muted-foreground mb-4">
-						Simulate an immediate payment settlement without external gateway redirection.
+					<p class="text-xs text-muted-foreground">
+						Pay securely using UPI, Credit/Debit cards, Netbanking, or mobile wallets.
 					</p>
-					<Form {form} onSubmit={save}>
-						<MoneyField
-							name="amount"
-							label="Amount to pay"
-							hint="Leave blank to settle full balance."
-							required={false}
-						/>
-						<Dialog.Footer class="pt-2">
-							<Button variant="outline" disabled={$form.isSubmitting} onclick={() => onOpenChange(false)}>
-								Cancel
-							</Button>
-							<Button
-								type="submit"
-								disabled={!$form.isValid || $form.isSubmitting}
-								aria-busy={$form.isSubmitting}
-							>
-								{$form.isSubmitting ? 'Processing…' : 'Settle payment'}
-							</Button>
-						</Dialog.Footer>
-					</Form>
-				</Tabs.Content>
-			</Tabs.Root>
+				</div>
+
+				<Dialog.Footer class="pt-2">
+					<Button variant="outline" disabled={razorpayLoading} onclick={() => onOpenChange(false)}>
+						Cancel
+					</Button>
+					<Button onclick={payWithRazorpay} disabled={razorpayLoading} aria-busy={razorpayLoading}>
+						{#if razorpayLoading}
+							<LoaderCircle class="mr-2 h-4 w-4 motion-safe:animate-spin" />
+							Connecting…
+						{:else}
+							<CreditCard class="mr-2 h-4 w-4" />
+							Pay {formatMoney(invoice.balance)}
+						{/if}
+					</Button>
+				</Dialog.Footer>
+			</div>
 		{:else}
 			<Form {form} onSubmit={save}>
 				<SelectField

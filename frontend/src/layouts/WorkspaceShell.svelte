@@ -40,7 +40,11 @@
 
 <div class={cn('workspace-shell', portal && 'portal-shell')}>
 	<aside class="workspace-sidebar">
-		<a href={resolve('/')} class="brand workspace-brand"
+		<a
+			href={resolve('/[...path]', {
+				path: user?.role === 'customer' ? 'portal/subscriptions' : 'app/dashboard'
+			})}
+			class="brand workspace-brand"
 			><span class="brand-symbol"><Repeat2 aria-hidden="true" /></span>Brightloop</a
 		>
 		<NavigationLinks role={user?.role} {portal} />
