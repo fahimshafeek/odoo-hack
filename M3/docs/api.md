@@ -149,4 +149,50 @@ This document describes the REST API endpoints implemented in `M3/` for the Brig
 - `GET /me/invoices/{id}`: View own invoice detail.
 - `GET /me/invoices/{id}/pdf`: Download own invoice PDF.
 - `POST /me/invoices/{id}/pay`: Mock online payment (`D27`).
+- `POST /me/invoices/{id}/razorpay/order`: Generate Razorpay Order ID for remaining balance (in paise).
+- `POST /me/invoices/{id}/razorpay/verify`: Cryptographically verify Razorpay payment signature (`HMAC-SHA256`) and capture payment.
 - `GET /me/payments`: List own payment history.
+
+---
+
+## 7. Razorpay Payment Gateway Endpoints
+
+### `POST /me/invoices/{id}/razorpay/order` (or `POST /invoices/{id}/razorpay/order`)
+- **Purpose**: Creates a Razorpay Order corresponding to the remaining invoice balance.
+- **Response**: `200 OK`
+  ```json
+  {
+    "order_id": "order_xxx",
+    "amount": 150000,
+    "currency": "INR",
+    "key_id": "rzp_test_xxx",
+    "invoice_id": "uuid",
+    "invoice_number": "INV-2026-000001",
+    "balance": "1500.00"
+  }
+  ```
+
+### `POST /me/invoices/{id}/razorpay/verify`
+- **Purpose**: Verifies checkout HMAC-SHA256 signature (`order_id|payment_id`) and records payment.
+- **Body**:
+  ```json
+  {
+    "razorpay_order_id": "order_xxx",
+    "razorpay_payment_id": "pay_xxx",
+    "razorpay_signature": "signature_hex"
+  }
+  ```
+- **Response**: `200 OK`
+  ```json
+  {
+    "success": true,
+    "message": "Payment verified and recorded successfully",
+    "payment": { ... },
+    "invoice_status": "paid",
+    "remaining_balance": "0.00"
+  }
+  ```
+
+### `POST /razorpay/webhook`
+- **Purpose**: Webhook listener for asynchronous events (`payment.captured`, `order.paid`).
+- **Headers**: `X-Razorpay-Signature` verified against `RAZORPAY_WEBHOOK_SECRET`.

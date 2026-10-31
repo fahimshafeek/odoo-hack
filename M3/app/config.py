@@ -13,3 +13,8 @@ DB_PATH = os.environ.get("M3_DB_PATH", str(BASE_DIR / "billing.db"))
 DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{DB_PATH}")
 
 KOLKATA_TZ = ZoneInfo("Asia/Kolkata")
+
+# Razorpay Payment Gateway Configuration
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_placeholder")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "placeholder_secret")
+RAZORPAY_WEBHOOK_SECRET = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "")

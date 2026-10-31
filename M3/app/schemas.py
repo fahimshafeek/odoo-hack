@@ -192,6 +192,7 @@ class PaymentCreate(SchemaBase):
     method: Literal["cash", "bank_transfer", "card", "upi", "cheque", "online"]
     amount: Money
     paid_on: date | None = None
+    reference: str | None = Field(default=None, max_length=100)
     note: str | None = Field(default=None, max_length=500)
 
     @field_validator("amount")
@@ -220,9 +221,42 @@ class PaymentOut(SchemaBase):
     method: str
     amount: Money
     paid_on: date
+    reference: str | None = None
     note: str | None
     recorded_by: uuid.UUID | None
     created_at: datetime
+
+
+class RazorpayOrderOut(SchemaBase):
+    order_id: str
+    amount: int  # in paise
+    currency: str = "INR"
+    key_id: str
+    invoice_id: uuid.UUID
+    invoice_number: str
+    balance: Money
+
+
+class RazorpayVerifyInput(SchemaBase):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+
+class RazorpayVerifyResponse(SchemaBase):
+    success: bool
+    message: str
+    payment: PaymentOut
+    invoice_status: str
+    remaining_balance: Money
+
+
+class RazorpayPaymentLinkOut(SchemaBase):
+    payment_link_id: str
+    short_url: str
+    amount: int  # in paise
+    invoice_id: uuid.UUID
+    invoice_number: str
 
 
 # -----------------------------------------------------------------------------

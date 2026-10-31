@@ -4,5 +4,10 @@
 *.sqlite
 *.sqlite3
 __pycache__/
+**/__pycache__/
 .pytest_cache/
 .ruff_cache/
+
+!tests/
+!tests/**
+tests/**/__pycache__/
