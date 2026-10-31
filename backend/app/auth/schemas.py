@@ -27,7 +27,6 @@ class SignupRequest(BaseModel):
     full_name: str = Field(..., min_length=1, max_length=120)
     company_name: Optional[str] = Field(None, max_length=120)
     phone: Optional[str] = Field(None, max_length=30)
-    role: Optional[str] = Field("customer", pattern="^(customer|staff|admin)$")
 
 
 class LoginRequest(BaseModel):

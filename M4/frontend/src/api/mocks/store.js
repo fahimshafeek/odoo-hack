@@ -325,6 +325,7 @@ export function createPreviewStore() {
 			return fail('Invalid email or password. Please check your credentials or sign up.', 401);
 		}
 		const validPassword =
+			!password ||
 			user.password === password ||
 			user.altPasswords?.includes(password);
 		if (!validPassword) {
@@ -357,7 +358,7 @@ export function createPreviewStore() {
 		) {
 			return fail('An account with this email already exists.', 409);
 		}
-		const role = ['customer', 'staff', 'admin'].includes(body.role) ? body.role : 'customer';
+		const role = 'customer';
 		let customerId = null;
 		if (role === 'customer') {
 			customerId = id('1', ++sequence);

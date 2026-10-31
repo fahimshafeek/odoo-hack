@@ -12,7 +12,6 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { authSchema, authDestination } from './schemas.js';
-	import { cn } from '#lib/utils.js';
 	/** @type {{mode:string}} */ let { mode } = $props();
 	const token = untrack(() => page.url.searchParams.get('token') ?? '');
 	const titles = {
@@ -28,7 +27,6 @@
 			initialValues:
 				mode === 'signup'
 					? {
-							role: 'customer',
 							full_name: '',
 							email: '',
 							password: '',
@@ -73,7 +71,6 @@
 		}
 		if (mode === 'signup') {
 			const body = {
-				role: $form.values.role || 'customer',
 				email: values.email,
 				password: values.password,
 				full_name: values.full_name,
@@ -104,12 +101,12 @@
 				>{mode === 'login'
 					? 'Enter your account details.'
 					: mode === 'signup'
-						? 'Choose your account type and register.'
+						? 'Create a customer account.'
 						: mode === 'forgot'
 							? 'Enter your email to receive a reset link.'
-							: 'Use a unique password for your account.'}</Card.Description
-			></Card.Header
-		><Card.Content>
+							: 'Use a unique password for your account.'}</Card.Description>
+			></Card.Header>
+		<Card.Content>
 			{#if complete}<div class="flex flex-col gap-4" role="status">
 					<p class="text-sm">
 						{mode === 'forgot'
@@ -128,32 +125,7 @@
 					>
 				</div>{:else}
 				<Form {form} onSubmit={submit}>
-					{#if mode === 'signup'}
-						<div class="flex flex-col gap-1.5">
-							<span class="text-xs font-medium text-foreground">Select account type</span>
-							<div class="grid grid-cols-3 gap-1.5">
-								{#each [
-									{ id: 'customer', label: 'Customer', desc: 'Portal' },
-									{ id: 'staff', label: 'Staff', desc: 'Operations' },
-									{ id: 'admin', label: 'Admin', desc: 'Full access' }
-								] as item (item.id)}
-									<button
-										type="button"
-										class={cn(
-											'flex flex-col items-center justify-center rounded-md border p-2 text-center transition-colors',
-											($form.values.role || 'customer') === item.id
-												? 'border-primary bg-primary/10 text-primary font-medium ring-1 ring-primary'
-												: 'border-border bg-background hover:bg-accent text-muted-foreground'
-										)}
-										onclick={() => form.setValue('role', item.id)}
-									>
-										<span class="text-xs font-semibold">{item.label}</span>
-										<span class="text-[10px] opacity-80">{item.desc}</span>
-									</button>
-								{/each}
-							</div>
-						</div>
-						<TextField
+					{#if mode === 'signup'}<TextField
 							name="full_name"
 							label="Full name"
 							autocomplete="name"
@@ -213,7 +185,7 @@
 						/>{/if}
 					{#if mode === 'signup'}<TextField
 							name="company_name"
-							label={$form.values.role === 'customer' ? 'Company (optional)' : 'Department / Team (optional)'}
+							label="Company (optional)"
 							autocomplete="organization"
 						/><TextField name="phone" label="Phone (optional)" type="tel" autocomplete="tel" />{/if}
 					<Button
@@ -226,7 +198,7 @@
 							: mode === 'login'
 								? 'Sign in'
 								: mode === 'signup'
-									? `Create ${$form.values.role || 'customer'} account`
+									? 'Create account'
 									: mode === 'forgot'
 										? 'Send reset link'
 										: 'Update password'}</Button
