@@ -10,7 +10,7 @@
 		SearchInput,
 		MoneyCell
 	} from '#lib/components/index.js';
-	import { Input } from '#lib/components/ui/input/index.js';
+	import DatePicker from '#lib/components/DatePicker.svelte';
 	import * as NativeSelect from '#lib/components/ui/native-select/index.js';
 	import CustomerFilter from './CustomerFilter.svelte';
 	import { usePayments } from './api.js';
@@ -78,20 +78,14 @@
 						>{#each ['cash', 'bank_transfer', 'card', 'upi', 'cheque', 'online'] as method (method)}<NativeSelect.Option
 								value={method}>{methodLabel(method)}</NativeSelect.Option
 							>{/each}</NativeSelect.Root
-					><Input
-						type="date"
-						aria-label="Payments from"
+					><DatePicker
+						label="Payments from"
 						value={String(list.value.date_from ?? '')}
-						onchange={(/** @type {Event} */ event) =>
-							list.update({
-								date_from: /** @type {HTMLInputElement} */ (event.currentTarget).value
-							})}
-					/><Input
-						type="date"
-						aria-label="Payments through"
+						onChange={(value) => list.update({ date_from: value })}
+					/><DatePicker
+						label="Payments through"
 						value={String(list.value.date_to ?? '')}
-						onchange={(/** @type {Event} */ event) =>
-							list.update({ date_to: /** @type {HTMLInputElement} */ (event.currentTarget).value })}
+						onChange={(value) => list.update({ date_to: value })}
 					/><CustomerFilter
 						value={String(list.value.customer_id ?? '')}
 						onChange={(customer_id) => list.update({ customer_id })}

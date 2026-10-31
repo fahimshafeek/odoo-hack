@@ -207,6 +207,83 @@ export const handlers = [
 	}),
 	http.post(`${base}/billing/run`, () => respond(() => store.startRun())),
 	http.get(`${base}/billing/runs/:id`, ({ params }) => respond(() => store.run(String(params.id)))),
+
+	http.get(base + '/reports/summary', () =>
+		respond(() => {
+			if (scenario === 'error') throw new Error('Preview report unavailable.');
+			const invoices = scenario === 'empty' ? [] : store.list('invoices', { page_size: 100 }).items;
+			const subscriptions =
+				scenario === 'empty' ? [] : store.list('subscriptions', { page_size: 100 }).items;
+			const sum = (/** @type {any[]} */ rows, /** @type {string} */ key) =>
+				rows.reduce((total, row) => total + Math.round(Number(row[key] || 0) * 100), 0) / 100;
+			const overdue = invoices.filter((row) => row.is_overdue);
+			return {
+				as_of: new Date().toISOString().slice(0, 10),
+				active_subscriptions: subscriptions.filter((row) => row.status === 'active').length,
+				mrr: sum(
+					subscriptions.filter((row) => row.status === 'active'),
+					'estimated_total'
+				).toFixed(2),
+				revenue_collected: sum(invoices, 'amount_paid').toFixed(2),
+				invoiced_total: sum(
+					invoices.filter((row) => ['confirmed', 'paid'].includes(row.status)),
+					'total'
+				).toFixed(2),
+				outstanding_total: sum(
+					invoices.filter((row) => row.status === 'confirmed'),
+					'balance'
+				).toFixed(2),
+				overdue_count: overdue.length,
+				overdue_total: sum(overdue, 'balance').toFixed(2),
+				upcoming_renewals_count: 0
+			};
+		})
+	),
+	http.get(base + '/reports/revenue-by-month', ({ request }) =>
+		respond(() => {
+			if (scenario === 'error') throw new Error('Preview report unavailable.');
+			if (scenario === 'empty') return [];
+			const count = Math.min(
+				36,
+				Math.max(1, Number(new URL(request.url).searchParams.get('months') || 6))
+			);
+			return Array.from({ length: count }, (_, index) => {
+				const month = new Date();
+				month.setUTCDate(1);
+				month.setUTCMonth(month.getUTCMonth() - count + index + 1);
+				return {
+					month: month.toISOString().slice(0, 7),
+					invoiced: (18000 + index * 3400 + (index % 3) * 2100).toFixed(2),
+					collected: (15000 + index * 3100 + (index % 2) * 1700).toFixed(2)
+				};
+			});
+		})
+	),
+	http.get(base + '/reports/overdue-invoices', () =>
+		respond(() => {
+			if (scenario === 'error') throw new Error('Preview report unavailable.');
+			const rows =
+				scenario === 'empty'
+					? []
+					: store.list('invoices', { payment_filter: 'overdue', page_size: 100 }).items;
+			return {
+				items: rows.slice(0, 5).map((row) => ({
+					invoice_id: row.id,
+					number: row.number,
+					customer_id: row.customer.id,
+					customer_name: row.customer.name,
+					phone: row.customer.phone,
+					due_date: row.due_date,
+					days_overdue: row.days_overdue,
+					total: row.total,
+					balance: row.balance
+				})),
+				total: rows.length,
+				page: 1,
+				page_size: 5
+			};
+		})
+	),
 	http.all(`${base}/*`, () =>
 		json(
 			{

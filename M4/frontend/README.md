@@ -33,7 +33,11 @@ exclude the fixture modules, and `npm run dev` keeps mocks off by default.
 | Customer subscriptions / details     | `/portal/subscriptions`, `/portal/subscriptions/:id` |
 | Customer invoices / details          | `/portal/invoices`, `/portal/invoices/:id`           |
 
-Other members own authentication, dashboard, catalog, rules, customer management,
+The dashboard at `/app/dashboard` includes report summary cards, a monthly revenue
+graph, and overdue invoices. Date controls share a keyboard-accessible calendar
+with month/year navigation and the same field validation as the forms.
+
+Other members own authentication, catalog, rules, customer management,
 profile, and payment history. Their current route components are placeholders.
 Live API integration and the seeded golden-flow verification are deferred.
 

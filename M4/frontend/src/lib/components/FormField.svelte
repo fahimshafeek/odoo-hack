@@ -1,5 +1,6 @@
 <script>
 	import FieldFrame from './FieldFrame.svelte';
+	import DatePicker from './DatePicker.svelte';
 	import { Input } from './ui/input/index.js';
 	import { Textarea } from './ui/textarea/index.js';
 	import { Switch } from './ui/switch/index.js';
@@ -68,6 +69,18 @@
 						>{option.label}</NativeSelect.Option
 					>{/each}
 			</NativeSelect.Root>
+		{:else if kind === 'date'}
+			<DatePicker
+				id={control.id}
+				{label}
+				value={control.value ?? ''}
+				onChange={control.update}
+				disabled={control.disabled}
+				{min}
+				{max}
+				invalid={Boolean(control.error)}
+				describedBy={control.describedBy}
+			/>
 		{:else if kind === 'switch'}
 			<Switch
 				id={control.id}
@@ -83,7 +96,7 @@
 			<Input
 				id={control.id}
 				{name}
-				type={kind === 'number' ? 'number' : kind === 'date' ? 'date' : type}
+				type={kind === 'number' ? 'number' : type}
 				value={control.value ?? ''}
 				{placeholder}
 				{required}

@@ -12,7 +12,7 @@
 		StatusBadge,
 		MoneyCell
 	} from '#lib/components/index.js';
-	import { Input } from '#lib/components/ui/input/index.js';
+	import DatePicker from '#lib/components/DatePicker.svelte';
 	import * as NativeSelect from '#lib/components/ui/native-select/index.js';
 	import * as Tabs from '#lib/components/ui/tabs/index.js';
 	import CustomerFilter from './CustomerFilter.svelte';
@@ -111,20 +111,14 @@
 						>{#each portal ? ['confirmed', 'paid'] : ['draft', 'confirmed', 'paid', 'cancelled'] as status (status)}<NativeSelect.Option
 								value={status}>{status[0].toUpperCase() + status.slice(1)}</NativeSelect.Option
 							>{/each}</NativeSelect.Root
-					><Input
-						type="date"
-						aria-label="Issued from"
+					><DatePicker
+						label="Issued from"
 						value={String(list.value.date_from ?? '')}
-						onchange={(/** @type {Event} */ event) =>
-							list.update({
-								date_from: /** @type {HTMLInputElement} */ (event.currentTarget).value
-							})}
-					/><Input
-						type="date"
-						aria-label="Issued through"
+						onChange={(value) => list.update({ date_from: value })}
+					/><DatePicker
+						label="Issued through"
 						value={String(list.value.date_to ?? '')}
-						onchange={(/** @type {Event} */ event) =>
-							list.update({ date_to: /** @type {HTMLInputElement} */ (event.currentTarget).value })}
+						onChange={(value) => list.update({ date_to: value })}
 					/>{#if !portal}<CustomerFilter
 							value={String(list.value.customer_id ?? '')}
 							onChange={(customer_id) => list.update({ customer_id })}

@@ -1,6 +1,5 @@
-// Phase 0 hand-off: this feature's owner replaces the placeholder component.
-import ComingSoon from '#lib/components/ComingSoon.svelte';
+import Dashboard from './Dashboard.svelte';
 
 export const routes = [
-	{ path: '/app/dashboard', title: 'Overview', roles: ['admin', 'staff'], component: ComingSoon }
+	{ path: '/app/dashboard', title: 'Overview', roles: ['admin', 'staff'], component: Dashboard }
 ];
