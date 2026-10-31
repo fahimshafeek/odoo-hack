@@ -1,5 +1,8 @@
 # Ignored Master Plan & Prompt files
+MASTER_PROMPT_*.md
 MASTER_PROMPT_M2_Catalog_Subscriptions.md
+MASTER_PROMPT_M3_Billing_Payments.md
+PLAN_for_repo*.md
 PLAN_for_repo.md
 
 # Python
