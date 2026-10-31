@@ -54,9 +54,19 @@ Thumbs.db
 # Test files and artifacts (kept in gitignore per project policy)
 tests/
 **/tests/
+**/__tests__/
+*vitest-setup*
+backend/tests/
+backend/tests/**
 test_*.py
 *_test.py
 *.test.py
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+frontend/e2e/
+frontend/build/
 test_results/
 test_reports/
 *.pytest*

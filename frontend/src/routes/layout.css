@@ -1,0 +1,294 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@theme inline {
+	--font-sans: 'Inter Variable', sans-serif;
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--foreground);
+	--color-popover: var(--card);
+	--color-popover-foreground: var(--foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--secondary);
+	--color-accent-foreground: var(--foreground);
+	--color-destructive: var(--status-danger);
+	--color-border: var(--border);
+	--color-input: var(--border);
+	--color-ring: var(--primary);
+	--color-status-draft: var(--status-draft);
+	--color-status-active: var(--status-active);
+	--color-status-warning: var(--status-warning);
+	--color-status-danger: var(--status-danger);
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.5);
+	--radius-2xl: calc(var(--radius) * 2);
+}
+
+:root {
+	--background: oklch(1 0 0);
+	--foreground: oklch(0.145 0 0);
+	--card: oklch(1 0 0);
+	--primary: oklch(0.205 0 0);
+	--primary-foreground: oklch(0.985 0 0);
+	--secondary: oklch(0.97 0 0);
+	--muted: oklch(0.97 0 0);
+	--muted-foreground: oklch(0.5 0 0);
+	--border: oklch(0.922 0 0);
+	--status-draft: oklch(0.51 0.01 270);
+	--status-active: oklch(0.43 0.1 157);
+	--status-warning: oklch(0.51 0.12 65);
+	--status-danger: oklch(0.51 0.18 25);
+	--radius: 0.625rem;
+	--sidebar-width: 15rem;
+}
+
+@layer base {
+	* {
+		border-color: var(--border);
+	}
+	body {
+		margin: 0;
+		background: var(--background);
+		color: var(--foreground);
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+	}
+	button,
+	a,
+	input,
+	select,
+	textarea {
+		-webkit-tap-highlight-color: transparent;
+	}
+	::selection {
+		background: var(--secondary);
+		color: var(--primary);
+	}
+	:focus-visible {
+		outline: 2px solid var(--primary);
+		outline-offset: 4px;
+	}
+	[data-slot='button'] {
+		min-height: 2.5rem;
+	}
+	[data-slot='input'],
+	[data-slot='native-select'],
+	[data-slot='command-item'],
+	[data-slot='alert-dialog-cancel'],
+	[data-slot='alert-dialog-action'] {
+		min-height: 2.5rem;
+	}
+	[data-slot='button'][data-size='lg'] {
+		min-height: 3rem;
+	}
+}
+
+.workspace-shell {
+	display: flex;
+	min-height: 100svh;
+}
+.preview-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	padding: 0.625rem 1rem;
+	border-bottom: 1px solid var(--border);
+	background: var(--secondary);
+	color: var(--primary);
+	font-size: 0.6875rem;
+}
+.preview-toolbar [data-slot='native-select'] {
+	min-height: 2rem;
+}
+.workspace-sidebar {
+	width: var(--sidebar-width);
+	flex-shrink: 0;
+	position: sticky;
+	top: 0;
+	height: 100svh;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+	padding: 1rem 0.5rem;
+	border-right: 1px solid var(--border);
+	background: var(--muted);
+}
+.workspace-brand {
+	padding: 0.25rem 0.75rem;
+	font-size: 0.875rem;
+}
+.workspace-brand .brand-symbol {
+	width: 1.75rem;
+	height: 1.75rem;
+}
+.workspace-link {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	min-height: 2.5rem;
+	padding: 0.625rem 0.75rem;
+	border-radius: var(--radius-md);
+	font-size: 0.8125rem;
+	text-decoration: none;
+	color: var(--muted-foreground);
+	transition:
+		background 150ms,
+		color 150ms;
+}
+.workspace-link:hover {
+	background: var(--card);
+	color: var(--foreground);
+}
+.workspace-link-active,
+.workspace-link-active:hover {
+	background: var(--card);
+	color: var(--primary);
+	font-weight: 500;
+}
+.workspace-link svg {
+	width: 1rem;
+	height: 1rem;
+	flex-shrink: 0;
+}
+.workspace-body {
+	min-width: 0;
+	flex: 1;
+}
+.workspace-topbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	min-height: 3.5rem;
+	border-bottom: 1px solid var(--border);
+	padding: 0.5rem 1.5rem;
+	background: var(--card);
+}
+.workspace-content {
+	padding: 1.5rem;
+	max-width: 100rem;
+	margin: 0 auto;
+}
+.workspace-content > main {
+	min-height: calc(100svh - 9rem);
+	padding: 0;
+}
+.account-avatar {
+	display: grid;
+	place-items: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: 50%;
+	background: var(--secondary);
+	color: var(--primary);
+	font-size: 0.625rem;
+}
+[data-slot='dropdown-menu-item'] {
+	min-height: 2.5rem;
+}
+.portal-shell {
+	flex-direction: column;
+}
+.portal-shell .workspace-sidebar {
+	position: static;
+	width: 100%;
+	height: auto;
+	overflow: visible;
+	flex-direction: row;
+	align-items: center;
+	gap: 3rem;
+	padding: 1.25rem 2rem;
+	border-right: 0;
+	border-bottom: 1px solid var(--border);
+}
+.portal-shell .workspace-sidebar nav,
+.portal-shell .workspace-sidebar nav > div {
+	flex-direction: row;
+	gap: 0.5rem;
+}
+.portal-shell .workspace-sidebar h2 {
+	display: none;
+}
+@media (max-width: 1023px) {
+	.workspace-sidebar,
+	.portal-shell .workspace-sidebar {
+		display: none;
+	}
+	.workspace-topbar {
+		padding: 0.75rem 1.5rem;
+	}
+	.workspace-content {
+		padding: 1.5rem;
+	}
+}
+@media (max-width: 767px) {
+	.workspace-topbar {
+		padding: 0.75rem 1rem;
+	}
+	.workspace-content {
+		padding: 1rem;
+	}
+	.page-actions,
+	.page-actions [data-slot='button'] {
+		width: 100%;
+	}
+}
+
+.skip-link {
+	position: fixed;
+	left: 1rem;
+	top: 1rem;
+	z-index: 100;
+	padding: 0.75rem 1rem;
+	border-radius: var(--radius);
+	background: var(--primary);
+	color: var(--primary-foreground);
+	transform: translateY(-200%);
+}
+.skip-link:focus {
+	transform: translateY(0);
+}
+.brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.625rem;
+	color: var(--foreground);
+	text-decoration: none;
+	font-size: 0.875rem;
+	font-weight: 600;
+	letter-spacing: -0.025em;
+}
+.brand-symbol {
+	display: grid;
+	place-items: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: var(--radius-md);
+	background: var(--primary);
+	color: var(--primary-foreground);
+}
+.brand-symbol svg {
+	width: 1rem;
+	height: 1rem;
+}
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+	}
+}
