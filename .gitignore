@@ -50,3 +50,13 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Test files and artifacts (kept in gitignore per project policy)
+tests/
+**/tests/
+test_*.py
+*_test.py
+*.test.py
+test_results/
+test_reports/
+*.pytest*
