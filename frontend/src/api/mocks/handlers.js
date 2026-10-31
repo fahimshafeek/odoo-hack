@@ -5,12 +5,21 @@ const base = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/
 let store = createPreviewStore();
 let scenario = 'normal';
 
-const roleOf = (/** @type {Request} */ request) =>
-	request.headers.get('Authorization')?.endsWith('customer')
+const userOf = (/** @type {Request} */ request) => {
+	const authHeader = request.headers.get('Authorization') ?? '';
+	const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+	return store.getSessionUser(token);
+};
+const roleOf = (/** @type {Request} */ request) => {
+	const user = userOf(request);
+	if (user?.role) return user.role;
+	const authHeader = request.headers.get('Authorization') ?? '';
+	return authHeader.includes('customer')
 		? 'customer'
-		: request.headers.get('Authorization')?.endsWith('staff')
+		: authHeader.includes('staff')
 			? 'staff'
 			: 'admin';
+};
 const queryOf = (/** @type {Request} */ request) =>
 	Object.fromEntries(new URL(request.url).searchParams);
 const json = (/** @type {any} */ data, status = 200) => HttpResponse.json(data, { status });
@@ -70,14 +79,12 @@ function previewPdf(invoice) {
 export const handlers = [
 	http.post(`${base}/auth/login`, async ({ request }) => {
 		const body = /** @type {any} */ (await request.json());
-		const role = String(body.email).startsWith('customer')
-			? 'customer'
-			: String(body.email).startsWith('staff')
-				? 'staff'
-				: 'admin';
-		return json(previewSession(role));
+		return respond(() => store.loginUser(body.email, body.password));
 	}),
-	http.get(`${base}/auth/me`, ({ request }) => json(previewSession(roleOf(request)).user)),
+	http.get(`${base}/auth/me`, ({ request }) => {
+		const user = userOf(request) ?? previewSession(roleOf(request)).user;
+		return json(user);
+	}),
 	http.post(`${base}/__preview/reset`, () => {
 		store = createPreviewStore();
 		scenario = 'normal';
@@ -189,22 +196,10 @@ export const handlers = [
 	http.patch(base + '/me/profile', async ({ request }) =>
 		respond(() => request.json().then((body) => store.saveProfile(body)))
 	),
-	http.post(base + '/auth/signup', async ({ request }) =>
-		respond(async () => {
-			const body = /** @type {any} */ (await request.json());
-			const session = previewSession('customer');
-			store.saveProfile({
-				full_name: body.full_name,
-				company_name: body.company_name,
-				email: body.email,
-				phone: body.phone
-			});
-			return {
-				...session,
-				user: { ...session.user, full_name: body.full_name, email: body.email }
-			};
-		})
-	),
+	http.post(base + '/auth/signup', async ({ request }) => {
+		const body = /** @type {any} */ (await request.json());
+		return respond(() => store.signupUser(body));
+	}),
 	http.post(base + '/auth/forgot-password', () =>
 		json({ message: 'If an account exists, a reset link will be sent.' })
 	),

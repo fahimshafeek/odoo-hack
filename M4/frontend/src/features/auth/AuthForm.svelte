@@ -12,6 +12,7 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { authSchema, authDestination } from './schemas.js';
+	import { cn } from '#lib/utils.js';
 	/** @type {{mode:string}} */ let { mode } = $props();
 	const token = untrack(() => page.url.searchParams.get('token') ?? '');
 	const titles = {
@@ -27,6 +28,7 @@
 			initialValues:
 				mode === 'signup'
 					? {
+							role: 'customer',
 							full_name: '',
 							email: '',
 							password: '',
@@ -71,6 +73,7 @@
 		}
 		if (mode === 'signup') {
 			const body = {
+				role: $form.values.role || 'customer',
 				email: values.email,
 				password: values.password,
 				full_name: values.full_name,
@@ -101,7 +104,7 @@
 				>{mode === 'login'
 					? 'Enter your account details.'
 					: mode === 'signup'
-						? 'Create a customer account.'
+						? 'Choose your account type and register.'
 						: mode === 'forgot'
 							? 'Enter your email to receive a reset link.'
 							: 'Use a unique password for your account.'}</Card.Description
@@ -123,8 +126,77 @@
 					<Button variant="outline" href={resolve('/[...path]', { path: 'forgot-password' })}
 						>Request reset link</Button
 					>
-				</div>{:else}<Form {form} onSubmit={submit}>
-					{#if mode === 'signup'}<TextField
+				</div>{:else}
+				{#if mode === 'login'}
+					<div class="mb-4 rounded-lg border border-border/80 bg-muted/40 p-3 text-xs">
+						<div class="flex items-center justify-between mb-2">
+							<span class="font-medium text-foreground">Quick Demo Sign-In</span>
+							<span class="text-[10px] text-muted-foreground">Click to fill</span>
+						</div>
+						<div class="grid grid-cols-3 gap-1.5">
+							<button
+								type="button"
+								class="rounded-md border border-border bg-background p-2 text-center font-medium hover:bg-accent transition-colors shadow-xs"
+								onclick={() => {
+									form.setValue('email', 'admin@brightloop.io');
+									form.setValue('password', 'BrightloopAdmin@123');
+								}}
+							>
+								<span class="block text-primary font-semibold text-xs">Admin</span>
+								<span class="block text-[10px] text-muted-foreground truncate">Dashboard</span>
+							</button>
+							<button
+								type="button"
+								class="rounded-md border border-border bg-background p-2 text-center font-medium hover:bg-accent transition-colors shadow-xs"
+								onclick={() => {
+									form.setValue('email', 'staff@brightloop.io');
+									form.setValue('password', 'BrightloopStaff@123');
+								}}
+							>
+								<span class="block text-primary font-semibold text-xs">Staff</span>
+								<span class="block text-[10px] text-muted-foreground truncate">Workspace</span>
+							</button>
+							<button
+								type="button"
+								class="rounded-md border border-border bg-background p-2 text-center font-medium hover:bg-accent transition-colors shadow-xs"
+								onclick={() => {
+									form.setValue('email', 'customer@brightloop.io');
+									form.setValue('password', 'BrightloopCust@123');
+								}}
+							>
+								<span class="block text-primary font-semibold text-xs">Customer</span>
+								<span class="block text-[10px] text-muted-foreground truncate">Portal</span>
+							</button>
+						</div>
+					</div>
+				{/if}
+				<Form {form} onSubmit={submit}>
+					{#if mode === 'signup'}
+						<div class="flex flex-col gap-1.5">
+							<span class="text-xs font-medium text-foreground">Select account type</span>
+							<div class="grid grid-cols-3 gap-1.5">
+								{#each [
+									{ id: 'customer', label: 'Customer', desc: 'Portal' },
+									{ id: 'staff', label: 'Staff', desc: 'Operations' },
+									{ id: 'admin', label: 'Admin', desc: 'Full access' }
+								] as item (item.id)}
+									<button
+										type="button"
+										class={cn(
+											'flex flex-col items-center justify-center rounded-md border p-2 text-center transition-colors',
+											($form.values.role || 'customer') === item.id
+												? 'border-primary bg-primary/10 text-primary font-medium ring-1 ring-primary'
+												: 'border-border bg-background hover:bg-accent text-muted-foreground'
+										)}
+										onclick={() => form.setValue('role', item.id)}
+									>
+										<span class="text-xs font-semibold">{item.label}</span>
+										<span class="text-[10px] opacity-80">{item.desc}</span>
+									</button>
+								{/each}
+							</div>
+						</div>
+						<TextField
 							name="full_name"
 							label="Full name"
 							autocomplete="name"
@@ -184,7 +256,7 @@
 						/>{/if}
 					{#if mode === 'signup'}<TextField
 							name="company_name"
-							label="Company (optional)"
+							label={$form.values.role === 'customer' ? 'Company (optional)' : 'Department / Team (optional)'}
 							autocomplete="organization"
 						/><TextField name="phone" label="Phone (optional)" type="tel" autocomplete="tel" />{/if}
 					<Button
@@ -197,7 +269,7 @@
 							: mode === 'login'
 								? 'Sign in'
 								: mode === 'signup'
-									? 'Create account'
+									? `Create ${$form.values.role || 'customer'} account`
 									: mode === 'forgot'
 										? 'Send reset link'
 										: 'Update password'}</Button

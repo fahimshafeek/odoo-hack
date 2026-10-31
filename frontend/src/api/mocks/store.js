@@ -24,11 +24,11 @@ export function previewSession(role) {
 			id: id('9', role === 'admin' ? 1 : role === 'staff' ? 2 : 3),
 			full_name:
 				role === 'customer'
-					? 'Northstar workspace'
+					? 'Northstar Labs'
 					: role === 'staff'
 						? 'Sales workspace'
 						: 'Admin workspace',
-			email: `${role}@preview.brightloop.test`,
+			email: `${role}@brightloop.io`,
 			role,
 			customer_id: role === 'customer' ? id('1', 1) : null
 		}
@@ -274,6 +274,164 @@ export function createPreviewStore() {
 	const fail = (/** @type {string} */ message, status = 409, fields = {}) => {
 		throw Object.assign(new Error(message), { status, fields });
 	};
+
+	const users = [
+		{
+			id: id('9', 1),
+			email: 'admin@brightloop.io',
+			aliases: ['admin@brightloop.test', 'admin@preview.brightloop.test'],
+			password: 'BrightloopAdmin@123',
+			altPasswords: ['Admin@12345', 'admin123', 'Brightloop123!'],
+			role: 'admin',
+			full_name: 'Admin workspace',
+			customer_id: null
+		},
+		{
+			id: id('9', 2),
+			email: 'staff@brightloop.io',
+			aliases: ['staff@brightloop.test', 'staff@preview.brightloop.test'],
+			password: 'BrightloopStaff@123',
+			altPasswords: ['Staff@12345', 'staff123', 'Brightloop123!'],
+			role: 'staff',
+			full_name: 'Sales workspace',
+			customer_id: null
+		},
+		{
+			id: id('9', 3),
+			email: 'customer@brightloop.io',
+			aliases: [
+				'customer@brightloop.test',
+				'customer@preview.brightloop.test',
+				'hello@northstar.example'
+			],
+			password: 'BrightloopCust@123',
+			altPasswords: ['Customer@12345', 'customer123', 'Brightloop123!'],
+			role: 'customer',
+			full_name: 'Northstar Labs',
+			customer_id: id('1', 1)
+		}
+	];
+	/** @type {Map<string, any>} */
+	const activeSessions = new Map();
+
+	function loginUser(/** @type {string} */ email, /** @type {string} */ password) {
+		const normEmail = String(email || '').trim().toLowerCase();
+		const user = users.find(
+			(u) =>
+				u.email.toLowerCase() === normEmail ||
+				u.aliases?.some((a) => a.toLowerCase() === normEmail)
+		);
+		if (!user) {
+			return fail('Invalid email or password. Please check your credentials or sign up.', 401);
+		}
+		const validPassword =
+			user.password === password ||
+			user.altPasswords?.includes(password);
+		if (!validPassword) {
+			return fail('Invalid email or password. Please check your password.', 401);
+		}
+		const token = `preview-${user.role}-${user.id}`;
+		const userOut = {
+			id: user.id,
+			full_name: user.full_name,
+			email: user.email,
+			role: user.role,
+			customer_id: user.customer_id
+		};
+		activeSessions.set(token, userOut);
+		return {
+			access_token: token,
+			token_type: 'bearer',
+			user: userOut
+		};
+	}
+
+	function signupUser(/** @type {any} */ body) {
+		const normEmail = String(body.email || '').trim().toLowerCase();
+		if (
+			users.some(
+				(u) =>
+					u.email.toLowerCase() === normEmail ||
+					u.aliases?.some((a) => a.toLowerCase() === normEmail)
+			)
+		) {
+			return fail('An account with this email already exists.', 409);
+		}
+		const role = ['customer', 'staff', 'admin'].includes(body.role) ? body.role : 'customer';
+		let customerId = null;
+		if (role === 'customer') {
+			customerId = id('1', ++sequence);
+			const newCustomer = {
+				id: customerId,
+				name: body.company_name || body.full_name,
+				company_name: body.company_name || '',
+				email: normEmail,
+				full_name: body.full_name,
+				phone: body.phone || '',
+				billing_address: 'Registered Address',
+				tax_id: null
+			};
+			customers.push(newCustomer);
+			profile = { ...newCustomer };
+		}
+		const newUser = {
+			id: id('9', ++sequence),
+			email: normEmail,
+			aliases: [],
+			password: body.password,
+			altPasswords: [],
+			role,
+			full_name: body.full_name,
+			customer_id: customerId
+		};
+		users.push(newUser);
+		if (role === 'staff') {
+			staff.push({
+				id: newUser.id,
+				full_name: newUser.full_name,
+				email: newUser.email,
+				role: 'staff',
+				is_active: true,
+				created_at: new Date().toISOString()
+			});
+		}
+		const token = `preview-${role}-${newUser.id}`;
+		const userOut = {
+			id: newUser.id,
+			full_name: newUser.full_name,
+			email: newUser.email,
+			role: newUser.role,
+			customer_id: newUser.customer_id
+		};
+		activeSessions.set(token, userOut);
+		return {
+			access_token: token,
+			token_type: 'bearer',
+			user: userOut
+		};
+	}
+
+	function getSessionUser(/** @type {string} */ token) {
+		if (!token) return null;
+		if (activeSessions.has(token)) return activeSessions.get(token);
+		for (const u of users) {
+			if (token.includes(u.id)) {
+				const userOut = {
+					id: u.id,
+					full_name: u.full_name,
+					email: u.email,
+					role: u.role,
+					customer_id: u.customer_id
+				};
+				activeSessions.set(token, userOut);
+				return userOut;
+			}
+		}
+		if (token.endsWith('customer')) return users.find((u) => u.role === 'customer') ?? null;
+		if (token.endsWith('staff')) return users.find((u) => u.role === 'staff') ?? null;
+		if (token.endsWith('admin')) return users.find((u) => u.role === 'admin') ?? null;
+		return null;
+	}
 	const own = (/** @type {any} */ row, /** @type {string} */ role) =>
 		role !== 'customer' || row.customer.id === id('1', 1);
 
@@ -834,6 +992,10 @@ export function createPreviewStore() {
 				}),
 				'admin'
 			);
-		}
+		},
+		loginUser,
+		signupUser,
+		getSessionUser,
+		users
 	};
 }

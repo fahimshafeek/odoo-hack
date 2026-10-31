@@ -12,6 +12,7 @@ export function authSchema(mode) {
 	if (mode === 'signup')
 		return z
 			.object({
+				role: z.enum(['customer', 'staff', 'admin']).default('customer'),
 				email: emailSchema,
 				full_name: personNameSchema,
 				password: passwordSchema,

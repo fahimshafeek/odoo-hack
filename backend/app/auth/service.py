@@ -26,7 +26,7 @@ from app.core.security import (
 
 
 def signup_customer(session: Session, data: SignupRequest) -> tuple[User, str]:
-    """Registers a new customer account (AUTH-1, AUTH-2)."""
+    """Registers a new account (AUTH-1, AUTH-2) with role support."""
     norm_email = data.email.strip().lower()
 
     # Password complexity check (AUTH-2)
@@ -37,28 +37,32 @@ def signup_customer(session: Session, data: SignupRequest) -> tuple[User, str]:
     if existing:
         raise AppError(code="email_taken", message="An account with this email already exists.", status_code=409)
 
+    user_role = data.role if data.role in ("customer", "staff", "admin") else "customer"
     user = User(
         email=norm_email,
         password_hash=hash_password(data.password),
-        role="customer",
+        role=user_role,
         full_name=data.full_name.strip(),
         is_active=True,
     )
     session.add(user)
     session.flush()
 
-    customer = Customer(
-        user_id=user.id,
-        company_name=data.company_name.strip() if data.company_name else None,
-        phone=data.phone.strip() if data.phone else None,
-    )
-    session.add(customer)
-    session.flush()
+    customer = None
+    if user_role == "customer":
+        customer = Customer(
+            user_id=user.id,
+            company_name=data.company_name.strip() if data.company_name else None,
+            phone=data.phone.strip() if data.phone else None,
+        )
+        session.add(customer)
+        session.flush()
 
+    customer_id = str(customer.id) if customer else None
     token = create_access_token(
         user_id=str(user.id),
         role=user.role,
-        customer_id=str(customer.id),
+        customer_id=customer_id,
         full_name=user.full_name,
         email=user.email,
     )

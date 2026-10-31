@@ -343,11 +343,11 @@
 		{invoice}
 		{portal}
 		open={paymentOpen}
-		onOpenChange={(next) => (paymentOpen = next)}
+		onOpenChange={(/** @type {boolean} */ next) => (paymentOpen = next)}
 		onSaved={refresh}
 	/>{/if}
 {#if linkModalOpen && invoice}
-	<Dialog.Root open={linkModalOpen} onOpenChange={(next) => (linkModalOpen = next)}>
+	<Dialog.Root open={linkModalOpen} onOpenChange={(/** @type {boolean} */ next) => (linkModalOpen = next)}>
 		<Dialog.Content class="sm:max-w-md">
 			<Dialog.Header>
 				<Dialog.Title>Razorpay Payment Link</Dialog.Title>

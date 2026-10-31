@@ -14,7 +14,7 @@ export async function downloadReportCsv(reportType) {
 		if (!(data instanceof Blob) && response?.status !== 200) {
 			throw new Error('Failed to generate CSV export.');
 		}
-		const blob = data instanceof Blob ? data : new Blob([data], { type: 'text/csv;charset=utf-8;' });
+		const blob = data instanceof Blob ? data : new Blob([String(data ?? '')], { type: 'text/csv;charset=utf-8;' });
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.href = url;

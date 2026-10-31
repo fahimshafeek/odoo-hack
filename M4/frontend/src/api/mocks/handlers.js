@@ -5,12 +5,21 @@ const base = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/
 let store = createPreviewStore();
 let scenario = 'normal';
 
-const roleOf = (/** @type {Request} */ request) =>
-	request.headers.get('Authorization')?.endsWith('customer')
+const userOf = (/** @type {Request} */ request) => {
+	const authHeader = request.headers.get('Authorization') ?? '';
+	const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+	return store.getSessionUser(token);
+};
+const roleOf = (/** @type {Request} */ request) => {
+	const user = userOf(request);
+	if (user?.role) return user.role;
+	const authHeader = request.headers.get('Authorization') ?? '';
+	return authHeader.includes('customer')
 		? 'customer'
-		: request.headers.get('Authorization')?.endsWith('staff')
+		: authHeader.includes('staff')
 			? 'staff'
 			: 'admin';
+};
 const queryOf = (/** @type {Request} */ request) =>
 	Object.fromEntries(new URL(request.url).searchParams);
 const json = (/** @type {any} */ data, status = 200) => HttpResponse.json(data, { status });
@@ -70,14 +79,12 @@ function previewPdf(invoice) {
 export const handlers = [
 	http.post(`${base}/auth/login`, async ({ request }) => {
 		const body = /** @type {any} */ (await request.json());
-		const role = String(body.email).startsWith('customer')
-			? 'customer'
-			: String(body.email).startsWith('staff')
-				? 'staff'
-				: 'admin';
-		return json(previewSession(role));
+		return respond(() => store.loginUser(body.email, body.password));
 	}),
-	http.get(`${base}/auth/me`, ({ request }) => json(previewSession(roleOf(request)).user)),
+	http.get(`${base}/auth/me`, ({ request }) => {
+		const user = userOf(request) ?? previewSession(roleOf(request)).user;
+		return json(user);
+	}),
 	http.post(`${base}/__preview/reset`, () => {
 		store = createPreviewStore();
 		scenario = 'normal';
@@ -189,22 +196,10 @@ export const handlers = [
 	http.patch(base + '/me/profile', async ({ request }) =>
 		respond(() => request.json().then((body) => store.saveProfile(body)))
 	),
-	http.post(base + '/auth/signup', async ({ request }) =>
-		respond(async () => {
-			const body = /** @type {any} */ (await request.json());
-			const session = previewSession('customer');
-			store.saveProfile({
-				full_name: body.full_name,
-				company_name: body.company_name,
-				email: body.email,
-				phone: body.phone
-			});
-			return {
-				...session,
-				user: { ...session.user, full_name: body.full_name, email: body.email }
-			};
-		})
-	),
+	http.post(base + '/auth/signup', async ({ request }) => {
+		const body = /** @type {any} */ (await request.json());
+		return respond(() => store.signupUser(body));
+	}),
 	http.post(base + '/auth/forgot-password', () =>
 		json({ message: 'If an account exists, a reset link will be sent.' })
 	),
@@ -355,6 +350,87 @@ export const handlers = [
 				page_size: 5
 			};
 		})
+	),
+	http.get(base + '/reports/upcoming-renewals', () =>
+		respond(() => {
+			if (scenario === 'error') throw new Error('Preview report unavailable.');
+			const rows =
+				scenario === 'empty'
+					? []
+					: store.list('subscriptions', { page_size: 100 }).items;
+			return {
+				items: rows.slice(0, 5).map((row) => ({
+					subscription_id: row.id,
+					number: row.number,
+					customer_name: row.customer?.name ?? 'Customer',
+					plan_name: row.plan?.name ?? 'Standard Plan',
+					expiry_date: row.expiry_date || new Date().toISOString().slice(0, 10),
+					days_left: 15,
+					allow_renew: true
+				})),
+				total: rows.length,
+				page: 1,
+				page_size: 5
+			};
+		})
+	),
+	http.get(base + '/reports/export.csv', ({ request }) => {
+		const type = new URL(request.url).searchParams.get('report') || 'overdue';
+		const csv = `"Report","${type}"\n"Sample","Data"`;
+		return new Response(csv, {
+			headers: {
+				'Content-Type': 'text/csv',
+				'Content-Disposition': `attachment; filename=brightloop_${type}_report.csv`
+			}
+		});
+	}),
+	http.post(`${base}/me/invoices/:id/razorpay/order`, ({ params }) =>
+		respond(() => ({
+			order_id: `order_mock_${String(params.id).slice(0, 8)}`,
+			amount: 50000,
+			currency: 'INR',
+			key_id: 'rzp_test_mock',
+			invoice_id: params.id,
+			invoice_number: 'INV-MOCK',
+			balance: '500.00'
+		}))
+	),
+	http.post(`${base}/invoices/:id/razorpay/order`, ({ params }) =>
+		respond(() => ({
+			order_id: `order_mock_${String(params.id).slice(0, 8)}`,
+			amount: 50000,
+			currency: 'INR',
+			key_id: 'rzp_test_mock',
+			invoice_id: params.id,
+			invoice_number: 'INV-MOCK',
+			balance: '500.00'
+		}))
+	),
+	http.post(`${base}/me/invoices/:id/razorpay/link`, ({ params }) =>
+		respond(() => ({
+			payment_link_id: `plink_mock_${String(params.id).slice(0, 8)}`,
+			short_url: `https://rzp.io/i/mock_${String(params.id).slice(0, 6)}`,
+			amount: 50000,
+			invoice_id: params.id,
+			invoice_number: 'INV-MOCK'
+		}))
+	),
+	http.post(`${base}/invoices/:id/razorpay/link`, ({ params }) =>
+		respond(() => ({
+			payment_link_id: `plink_mock_${String(params.id).slice(0, 8)}`,
+			short_url: `https://rzp.io/i/mock_${String(params.id).slice(0, 6)}`,
+			amount: 50000,
+			invoice_id: params.id,
+			invoice_number: 'INV-MOCK'
+		}))
+	),
+	http.post(`${base}/me/invoices/:id/razorpay/verify`, ({ params }) =>
+		respond(() => ({
+			status: 'captured',
+			payment_id: 'pay_mock_verified',
+			invoice_status: 'paid',
+			amount_paid: '500.00'
+		}))
 	),
 	http.all(`${base}/*`, () =>
 		json(

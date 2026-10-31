@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { gsap } from 'gsap';
-	import { ArrowLeft, Download, Send, CreditCard, Check, X } from '@lucide/svelte';
+	import { ArrowLeft, Download, Send, CreditCard, Check, X, Link as LinkIcon, Copy } from '@lucide/svelte';
 	import { recordId } from '#lib/navigation.js';
 	import { formatMoney, formatDate } from '#lib/format.js';
 	import { notify } from '#lib/notify.js';
@@ -19,9 +19,11 @@
 		ConfirmDialog
 	} from '#lib/components/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import PaymentDialog from './PaymentDialog.svelte';
 	import { useInvoice, useBillingInvalidation } from './api.js';
 	/** @type {{portal?: boolean}} */
@@ -37,6 +39,32 @@
 	let paymentOpen = $state(false);
 	let printing = $state(false);
 	let pendingAction = $state('');
+	let linkLoading = $state(false);
+	let razorpayLink = $state('');
+	let linkModalOpen = $state(false);
+
+	async function createPaymentLink() {
+		if (!invoice) return;
+		linkLoading = true;
+		try {
+			const res = await request(
+				'POST',
+				portal ? `/me/invoices/${invoice.id}/razorpay/link` : `/invoices/${invoice.id}/razorpay/link`
+			);
+			razorpayLink = res.short_url || `https://rzp.io/i/${res.payment_link_id}`;
+			linkModalOpen = true;
+			if (typeof navigator !== 'undefined' && navigator.clipboard) {
+				await navigator.clipboard.writeText(razorpayLink);
+				notify.success('Razorpay payment link copied to clipboard!');
+			} else {
+				notify.success('Razorpay payment link generated.');
+			}
+		} catch (err) {
+			notify.error(err);
+		} finally {
+			linkLoading = false;
+		}
+	}
 	const actionLabels = {
 		confirm: 'Confirm invoice',
 		cancel: 'Cancel invoice',
@@ -135,6 +163,14 @@
 								variant="outline"
 								onclick={() => (pendingAction = 'send')}
 								><Send data-icon="inline-start" />Send</Button
+							>{/if}
+						{#if invoice.status === 'confirmed' && Number(invoice.balance) > 0}<Button
+								variant="outline"
+								onclick={createPaymentLink}
+								disabled={linkLoading}
+								><LinkIcon data-icon="inline-start" />{linkLoading
+									? 'Generating…'
+									: 'Payment link'}</Button
 							>{/if}
 						{#if invoice.allowed_actions.includes('print')}<Button
 								variant="outline"
@@ -307,6 +343,39 @@
 		{invoice}
 		{portal}
 		open={paymentOpen}
-		onOpenChange={(next) => (paymentOpen = next)}
+		onOpenChange={(/** @type {boolean} */ next) => (paymentOpen = next)}
 		onSaved={refresh}
 	/>{/if}
+{#if linkModalOpen && invoice}
+	<Dialog.Root open={linkModalOpen} onOpenChange={(/** @type {boolean} */ next) => (linkModalOpen = next)}>
+		<Dialog.Content class="sm:max-w-md">
+			<Dialog.Header>
+				<Dialog.Title>Razorpay Payment Link</Dialog.Title>
+				<Dialog.Description>
+					Share this hosted link to collect payment online for invoice {invoice.number}.
+				</Dialog.Description>
+			</Dialog.Header>
+			<div class="flex items-center gap-2 pt-2">
+				<Input readonly value={razorpayLink} class="font-mono text-xs" />
+				<Button
+					variant="outline"
+					size="icon"
+					onclick={async () => {
+						if (typeof navigator !== 'undefined' && navigator.clipboard) {
+							await navigator.clipboard.writeText(razorpayLink);
+							notify.success('Link copied to clipboard!');
+						}
+					}}
+				>
+					<Copy class="h-4 w-4" />
+				</Button>
+			</div>
+			<Dialog.Footer class="pt-4">
+				<Button variant="outline" onclick={() => (linkModalOpen = false)}>Close</Button>
+				<Button href={razorpayLink} target="_blank" rel="noopener noreferrer">
+					Open link
+				</Button>
+			</Dialog.Footer>
+		</Dialog.Content>
+	</Dialog.Root>
+{/if}

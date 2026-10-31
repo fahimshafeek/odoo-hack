@@ -37,10 +37,10 @@ def run_seed(reset: bool = False):
     curr_date = today()
     try:
         logger.info("1. Seeding base users and customer profiles...")
-        admin = session.query(User).filter_by(email="admin@brightloop.test").first()
+        admin = session.query(User).filter_by(email="admin@brightloop.io").first()
         if not admin:
             admin = User(
-                email="admin@brightloop.test",
+                email="admin@brightloop.io",
                 password_hash=hash_password("BrightloopAdmin@123"),
                 role="admin",
                 full_name="System Administrator",
@@ -48,10 +48,10 @@ def run_seed(reset: bool = False):
             )
             session.add(admin)
 
-        staff = session.query(User).filter_by(email="staff@brightloop.test").first()
+        staff = session.query(User).filter_by(email="staff@brightloop.io").first()
         if not staff:
             staff = User(
-                email="staff@brightloop.test",
+                email="staff@brightloop.io",
                 password_hash=hash_password("BrightloopStaff@123"),
                 role="staff",
                 full_name="Operations Staff",
@@ -59,10 +59,10 @@ def run_seed(reset: bool = False):
             )
             session.add(staff)
 
-        cust_user = session.query(User).filter_by(email="customer@brightloop.test").first()
+        cust_user = session.query(User).filter_by(email="customer@brightloop.io").first()
         if not cust_user:
             cust_user = User(
-                email="customer@brightloop.test",
+                email="customer@brightloop.io",
                 password_hash=hash_password("BrightloopCust@123"),
                 role="customer",
                 full_name="Rohith Sarath",
