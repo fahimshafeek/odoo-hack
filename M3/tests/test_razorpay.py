@@ -235,3 +235,32 @@ def test_razorpay_webhook_event_capture(client, db):
     db.refresh(inv)
     assert inv.status == "paid"
     assert inv.amount_paid == Decimal("750.00")
+
+
+def test_razorpay_payment_link_generation(client, db):
+    cust_id = uuid.uuid4()
+    inv = Invoice(
+        number="INV-RZP-LINK-001",
+        subscription_id=uuid.uuid4(),
+        customer_id=cust_id,
+        status="confirmed",
+        period_start=today(),
+        period_end=today(),
+        issue_date=today(),
+        due_date=today(),
+        total=Decimal("1200.00"),
+        amount_paid=Decimal("0.00"),
+    )
+    db.add(inv)
+    db.commit()
+
+    resp = client.post(
+        f"/me/invoices/{inv.id}/razorpay/link?customer_id={cust_id}&role=customer"
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+
+    assert data["invoice_id"] == str(inv.id)
+    assert data["amount"] == 120000  # 1200 INR = 120,000 paise
+    assert "short_url" in data
+    assert data["short_url"].startswith("https://rzp.io/")

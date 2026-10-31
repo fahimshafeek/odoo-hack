@@ -251,6 +251,14 @@ class RazorpayVerifyResponse(SchemaBase):
     remaining_balance: Money
 
 
+class RazorpayPaymentLinkOut(SchemaBase):
+    payment_link_id: str
+    short_url: str
+    amount: int  # in paise
+    invoice_id: uuid.UUID
+    invoice_number: str
+
+
 # -----------------------------------------------------------------------------
 # Invoice Schemas
 # -----------------------------------------------------------------------------

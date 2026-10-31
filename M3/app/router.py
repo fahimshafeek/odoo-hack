@@ -27,6 +27,7 @@ from app.payments import mock_pay, record_payment
 from app.pdf import generate_invoice_pdf
 from app.razorpay_client import (
     create_razorpay_order,
+    create_razorpay_payment_link,
     verify_razorpay_signature,
     verify_razorpay_webhook_signature,
 )
@@ -41,6 +42,7 @@ from app.schemas import (
     PaymentCreate,
     PaymentOut,
     RazorpayOrderOut,
+    RazorpayPaymentLinkOut,
     RazorpayVerifyInput,
     RazorpayVerifyResponse,
     TaxCreate,
@@ -521,6 +523,47 @@ def portal_create_razorpay_order(
 
 
 @portal_router.post(
+    "/invoices/{invoice_id}/razorpay/link",
+    response_model=RazorpayPaymentLinkOut,
+    summary="Portal: Generate Razorpay hosted Payment Link (rzp.io)",
+)
+def portal_create_razorpay_payment_link(
+    invoice_id: uuid.UUID,
+    session: Session = Depends(get_session),
+    user: AuthUser = Depends(get_current_user),
+):
+    inv = session.get(Invoice, invoice_id)
+    if not inv:
+        raise AppError("not_found", "Invoice not found", status=404)
+    assert_customer_owns(user, inv.customer_id)
+    if inv.status != "confirmed":
+        raise AppError(
+            "invoice_not_payable",
+            f"Cannot create payment link for invoice in '{inv.status}' status",
+            status=409,
+        )
+    balance = inv.total - inv.amount_paid
+    if balance <= 0:
+        raise AppError(
+            "invoice_already_paid", "Invoice has already been settled", status=409
+        )
+
+    link_data = create_razorpay_payment_link(
+        amount=balance,
+        invoice_number=inv.number,
+        invoice_id=inv.id,
+    )
+
+    return RazorpayPaymentLinkOut(
+        payment_link_id=link_data["id"],
+        short_url=link_data["short_url"],
+        amount=link_data["amount"],
+        invoice_id=inv.id,
+        invoice_number=inv.number,
+    )
+
+
+@portal_router.post(
     "/invoices/{invoice_id}/razorpay/verify",
     response_model=RazorpayVerifyResponse,
     summary="Portal: Verify Razorpay signature and capture payment",
@@ -640,6 +683,47 @@ def api_admin_create_razorpay_order(
         invoice_id=inv.id,
         invoice_number=inv.number,
         balance=balance,
+    )
+
+
+@router.post(
+    "/invoices/{invoice_id}/razorpay/link",
+    response_model=RazorpayPaymentLinkOut,
+    summary="Admin/Staff: Generate Razorpay hosted Payment Link (rzp.io)",
+)
+def api_admin_create_razorpay_payment_link(
+    invoice_id: uuid.UUID,
+    session: Session = Depends(get_session),
+    user: AuthUser = Depends(get_current_user),
+):
+    require_role("admin", "staff")(user)
+    inv = session.get(Invoice, invoice_id)
+    if not inv:
+        raise AppError("not_found", "Invoice not found", status=404)
+    if inv.status != "confirmed":
+        raise AppError(
+            "invoice_not_payable",
+            f"Cannot create payment link for invoice in '{inv.status}' status",
+            status=409,
+        )
+    balance = inv.total - inv.amount_paid
+    if balance <= 0:
+        raise AppError(
+            "invoice_already_paid", "Invoice has already been settled", status=409
+        )
+
+    link_data = create_razorpay_payment_link(
+        amount=balance,
+        invoice_number=inv.number,
+        invoice_id=inv.id,
+    )
+
+    return RazorpayPaymentLinkOut(
+        payment_link_id=link_data["id"],
+        short_url=link_data["short_url"],
+        amount=link_data["amount"],
+        invoice_id=inv.id,
+        invoice_number=inv.number,
     )
 
 

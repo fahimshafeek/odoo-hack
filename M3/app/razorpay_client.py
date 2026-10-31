@@ -100,6 +100,88 @@ def create_razorpay_order(
     }
 
 
+def create_razorpay_payment_link(
+    amount: Decimal,
+    invoice_number: str,
+    invoice_id: uuid.UUID,
+    customer_name: str = "",
+    customer_email: str = "",
+    customer_contact: str = "",
+    callback_url: str = "",
+) -> dict[str, Any]:
+    """
+    Creates a Razorpay Payment Link (hosted rzp.io short URL) via /v1/payment_links.
+    Customers can open this URL directly in their browser or mobile to pay via UPI/Card.
+    """
+    amount_paise = inr_to_paise(amount)
+    key_id = RAZORPAY_KEY_ID
+    key_secret = RAZORPAY_KEY_SECRET
+
+    payload = {
+        "amount": amount_paise,
+        "currency": "INR",
+        "accept_partial": False,
+        "description": f"Payment for Invoice {invoice_number}",
+        "customer": {
+            "name": customer_name or "Valued Customer",
+            "email": customer_email or "billing@example.com",
+            "contact": customer_contact or "+919999999999",
+        },
+        "notify": {"sms": False, "email": False},
+        "reminder_enable": False,
+        "notes": {
+            "invoice_id": str(invoice_id),
+            "invoice_number": invoice_number,
+        },
+    }
+    if callback_url:
+        payload["callback_url"] = callback_url
+        payload["callback_method"] = "get"
+
+    is_live_key = (
+        key_id.startswith(("rzp_test_", "rzp_live_"))
+        and key_id != "rzp_test_placeholder"
+    )
+
+    if is_live_key:
+        try:
+            with httpx.Client(timeout=10.0) as client:
+                resp = client.post(
+                    f"{RAZORPAY_API_BASE}/payment_links",
+                    auth=(key_id, key_secret),
+                    json=payload,
+                )
+                if resp.status_code in (200, 201):
+                    data = resp.json()
+                    return {
+                        "id": data["id"],
+                        "short_url": data.get("short_url", ""),
+                        "status": data.get("status", "created"),
+                        "amount": data["amount"],
+                    }
+                error_data = resp.json().get("error", {})
+                raise AppError(
+                    "razorpay_error",
+                    f"Payment link creation failed: {error_data.get('description', resp.text)}",
+                    status=502,
+                )
+        except httpx.RequestError as exc:
+            raise AppError(
+                "razorpay_connection_error",
+                f"Could not connect to Razorpay API: {exc}",
+                status=502,
+            ) from exc
+
+    # Offline/Mock test mode short url
+    link_id = f"plink_{uuid.uuid4().hex[:14]}"
+    return {
+        "id": link_id,
+        "short_url": f"https://rzp.io/rzp/mock_{uuid.uuid4().hex[:8]}",
+        "status": "created",
+        "amount": amount_paise,
+    }
+
+
 def verify_razorpay_signature(
     razorpay_order_id: str,
     razorpay_payment_id: str,
