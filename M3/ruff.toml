@@ -1,0 +1,10 @@
+[lint]
+ignore = [
+    "B008",   # Do not perform function call `Depends` in argument defaults (FastAPI standard)
+    "BLE001", # Do not catch blind exception
+    "TRY004", # Prefer TypeError
+    "TRY401", # Redundant exception in logging
+    "SIM102", # Nested if statements
+    "SIM115", # Context manager for tempfile
+    "F841",   # Unused variable
+]

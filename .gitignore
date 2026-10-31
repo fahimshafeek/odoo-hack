@@ -1,7 +1,8 @@
 # Ignored Master Plan & Prompt files
 MASTER_PROMPT_*.md
-/M4/PLAN_for_repo.md
-/M4/MASTER_PROMPT_M4_Frontend_UX.md
+MASTER_PROMPT_M2_Catalog_Subscriptions.md
+MASTER_PROMPT_M3_Billing_Payments.md
+PLAN_for_repo*.md
 PLAN_for_repo.md
 
 # Environment variables & secrets (CRITICAL: NEVER COMMIT)
