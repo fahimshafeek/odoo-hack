@@ -6,4 +6,4 @@
 	const Component = $derived(route?.component);
 </script>
 
-{#if Component}<Component title={data.title} />{/if}
+{#if Component}<Component {...route?.props ?? {}} title={data.title} />{/if}

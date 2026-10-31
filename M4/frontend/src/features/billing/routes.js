@@ -1,19 +1,21 @@
-// Phase 0 hand-off: this feature's owner replaces the placeholder component.
-import ComingSoon from '#lib/components/ComingSoon.svelte';
+import InvoiceList from './InvoiceList.svelte';
+import InvoiceDetail from './InvoiceDetail.svelte';
+import PaymentsList from './PaymentsList.svelte';
+import BillingRuns from './BillingRuns.svelte';
 
 export const routes = [
-	{ path: '/app/invoices', title: 'Invoices', roles: ['admin', 'staff'], component: ComingSoon },
+	{ path: '/app/invoices', title: 'Invoices', roles: ['admin', 'staff'], component: InvoiceList },
 	{
 		path: '/app/invoices/:id',
 		title: 'Invoice details',
 		roles: ['admin', 'staff'],
-		component: ComingSoon
+		component: InvoiceDetail
 	},
-	{ path: '/app/payments', title: 'Payments', roles: ['admin', 'staff'], component: ComingSoon },
+	{ path: '/app/payments', title: 'Payments', roles: ['admin', 'staff'], component: PaymentsList },
 	{
 		path: '/app/billing-runs',
 		title: 'Billing runs',
 		roles: ['admin', 'staff'],
-		component: ComingSoon
+		component: BillingRuns
 	}
 ];

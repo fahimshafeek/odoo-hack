@@ -10,6 +10,8 @@ import { routes as subscriptions } from '#src/features/subscriptions/routes.js';
 import { routes as billing } from '#src/features/billing/routes.js';
 import { routes as portal } from '#src/features/portal/routes.js';
 
+/** @typedef {{path: string, title: string, roles: string[], component: import('svelte').Component<any>, props?: Record<string, any>}} AppRoute */
+/** @type {AppRoute[]} */
 export const routes = [
 	auth,
 	staff,

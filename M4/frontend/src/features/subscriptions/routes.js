@@ -1,23 +1,30 @@
-// Phase 0 hand-off: this feature's owner replaces the placeholder component.
-import ComingSoon from '#lib/components/ComingSoon.svelte';
+import SubscriptionList from './SubscriptionList.svelte';
+import SubscriptionDetail from './SubscriptionDetail.svelte';
+import SubscriptionForm from './SubscriptionForm.svelte';
 
 export const routes = [
 	{
 		path: '/app/subscriptions',
 		title: 'Subscriptions',
 		roles: ['admin', 'staff'],
-		component: ComingSoon
+		component: SubscriptionList
 	},
 	{
 		path: '/app/subscriptions/new',
 		title: 'New subscription',
 		roles: ['admin', 'staff'],
-		component: ComingSoon
+		component: SubscriptionForm
 	},
 	{
 		path: '/app/subscriptions/:id',
 		title: 'Subscription details',
 		roles: ['admin', 'staff'],
-		component: ComingSoon
+		component: SubscriptionDetail
+	},
+	{
+		path: '/app/subscriptions/:id/edit',
+		title: 'Edit subscription',
+		roles: ['admin', 'staff'],
+		component: SubscriptionForm
 	}
 ];
