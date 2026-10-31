@@ -1,0 +1,104 @@
+{
+	"openapi": "3.0.3",
+	"info": {
+		"title": "Brightloop provisional auth contract (master prompt A4; replace at G3)",
+		"version": "0.1.0"
+	},
+	"paths": {
+		"/auth/me": {
+			"get": {
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/User"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/auth/login": {
+			"post": {
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": ["email", "password"],
+								"properties": {
+									"email": {
+										"type": "string"
+									},
+									"password": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AuthSession"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"User": {
+				"type": "object",
+				"required": ["id", "email", "full_name", "role", "customer_id"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"email": {
+						"type": "string"
+					},
+					"full_name": {
+						"type": "string"
+					},
+					"role": {
+						"type": "string",
+						"enum": ["admin", "staff", "customer"]
+					},
+					"customer_id": {
+						"type": "string",
+						"nullable": true
+					}
+				}
+			},
+			"AuthSession": {
+				"type": "object",
+				"required": ["access_token", "token_type", "user"],
+				"properties": {
+					"access_token": {
+						"type": "string"
+					},
+					"token_type": {
+						"type": "string",
+						"enum": ["bearer"]
+					},
+					"user": {
+						"$ref": "#/components/schemas/User"
+					}
+				}
+			}
+		}
+	}
+}
