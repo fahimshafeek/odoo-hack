@@ -24,7 +24,8 @@ There are no runtime font, image, or CDN requests.
 Use an 8px layout grid, 40px minimum tap targets, and 16/24/32px application page
 padding at phone/tablet/desktop widths. The planned sidebar is 240px with 24px
 navigation group gaps; it becomes a drawer below 1024px. Verify 375/768/1280px.
-The welcome page establishes the visual language; application layouts ship next.
+The welcome page establishes the visual language. AdminLayout and PortalLayout
+share role-filtered navigation, breadcrumbs, an account menu, and a mobile Sheet.
 
 GSAP uses Svelte attachments, scoped targets, transform/opacity reveals, media
 queries for reduced motion, and `revert()` on cleanup. Content stays visible

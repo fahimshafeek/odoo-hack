@@ -64,5 +64,19 @@ backend contract. Phase 2 adds subscription, invoice/payment, billing-run, and
 portal screens. Business actions come from server `allowed_actions`; prices and
 billing calculations remain on the server.
 
-Work stays on a feature branch with conventional commits authored by the configured
-human identity. Ask the user before every push; never push to main directly.
+Work stays on `main` with conventional commits authored by the configured human
+identity, following the user's latest instruction. Ask before a push unless that
+push has already been authorized. Do not create new branches.
+
+## Phase 1 checkpoint
+
+Shared Nova primitives now include Badge, Card, Sheet, DropdownMenu, Separator,
+and Skeleton. `PageHeader`, `MoneyCell`, and the INR/date formatters are available
+for feature owners. `src/layouts/navConfig.js` owns all role-filtered navigation.
+AdminLayout and PortalLayout mount under their guarded SvelteKit route trees,
+with a mobile drawer, breadcrumbs, role chip, account menu, and logout.
+The data table, status mapping, and form components are the next Phase 1 unit.
+
+SvelteKit's JavaScript checking uses TypeScript 6. The API generator's compiler
+peer is overridden to that same version; API generation and checks validate the
+combination. Application source remains JavaScript.
