@@ -3,8 +3,8 @@ import uuid
 from typing import Optional, Dict, Any
 import jwt
 from app.core.clock import now
+from app.core.config import SECRET_KEY
 
-SECRET_KEY = "brightloop-secret-key-change-in-prod"
 ALGORITHM = "HS256"
 
 

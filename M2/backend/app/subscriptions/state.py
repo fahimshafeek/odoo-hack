@@ -151,9 +151,31 @@ def transition(
             if not plan or not plan.allow_renew:
                 raise AppError("plan_rule_violation", "This plan does not allow renewal", 409)
             # D17: extends expiry_date by one original term (min 1 billing period)
-            original_term = sub.expiry_date - sub.start_date
+            import re
+            first_renew = (
+                session.query(SubscriptionHistory)
+                .filter(
+                    SubscriptionHistory.subscription_id == sub.id,
+                    SubscriptionHistory.action == "renew"
+                )
+                .order_by(SubscriptionHistory.changed_at.asc())
+                .first()
+            )
+            if first_renew and first_renew.note and "from " in first_renew.note:
+                m = re.search(r"from (\d{4}-\d{2}-\d{2})", first_renew.note)
+                if m:
+                    first_old_expiry = datetime.date.fromisoformat(m.group(1))
+                    original_term = first_old_expiry - sub.start_date
+                else:
+                    original_term = sub.expiry_date - sub.start_date
+            else:
+                original_term = sub.expiry_date - sub.start_date
+
             if original_term <= datetime.timedelta(days=0):
-                original_term = datetime.timedelta(days=30)
+                anchor = sub.start_date.day if sub.start_date else 1
+                period_end = add_period(sub.expiry_date, plan.billing_period if plan else "monthly", anchor)
+                original_term = period_end - sub.expiry_date
+
             old_expiry = sub.expiry_date
             sub.expiry_date = old_expiry + original_term
             sub.renewal_flagged_at = None
