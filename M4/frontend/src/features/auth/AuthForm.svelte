@@ -127,49 +127,6 @@
 						>Request reset link</Button
 					>
 				</div>{:else}
-				{#if mode === 'login'}
-					<div class="mb-4 rounded-lg border border-border/80 bg-muted/40 p-3 text-xs">
-						<div class="flex items-center justify-between mb-2">
-							<span class="font-medium text-foreground">Quick Demo Sign-In</span>
-							<span class="text-[10px] text-muted-foreground">Click to fill</span>
-						</div>
-						<div class="grid grid-cols-3 gap-1.5">
-							<button
-								type="button"
-								class="rounded-md border border-border bg-background p-2 text-center font-medium hover:bg-accent transition-colors shadow-xs"
-								onclick={() => {
-									form.setValue('email', 'admin@brightloop.io');
-									form.setValue('password', 'BrightloopAdmin@123');
-								}}
-							>
-								<span class="block text-primary font-semibold text-xs">Admin</span>
-								<span class="block text-[10px] text-muted-foreground truncate">Dashboard</span>
-							</button>
-							<button
-								type="button"
-								class="rounded-md border border-border bg-background p-2 text-center font-medium hover:bg-accent transition-colors shadow-xs"
-								onclick={() => {
-									form.setValue('email', 'staff@brightloop.io');
-									form.setValue('password', 'BrightloopStaff@123');
-								}}
-							>
-								<span class="block text-primary font-semibold text-xs">Staff</span>
-								<span class="block text-[10px] text-muted-foreground truncate">Workspace</span>
-							</button>
-							<button
-								type="button"
-								class="rounded-md border border-border bg-background p-2 text-center font-medium hover:bg-accent transition-colors shadow-xs"
-								onclick={() => {
-									form.setValue('email', 'customer@brightloop.io');
-									form.setValue('password', 'BrightloopCust@123');
-								}}
-							>
-								<span class="block text-primary font-semibold text-xs">Customer</span>
-								<span class="block text-[10px] text-muted-foreground truncate">Portal</span>
-							</button>
-						</div>
-					</div>
-				{/if}
 				<Form {form} onSubmit={submit}>
 					{#if mode === 'signup'}
 						<div class="flex flex-col gap-1.5">

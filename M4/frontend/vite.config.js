@@ -8,6 +8,7 @@ const testing = process.env.VITEST
 	: [];
 
 export default {
+	server: { host: '127.0.0.1', port: 5173, strictPort: true },
 	// This CSS-only package has no JavaScript export for Vite's SSR resolver.
 	resolve: {
 		alias: {
