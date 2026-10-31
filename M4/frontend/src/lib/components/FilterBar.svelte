@@ -5,6 +5,9 @@
 	let { children, params = {}, onChange } = $props();
 	const names = /** @type {Record<string, string>} */ ({
 		q: 'Search',
+		active: 'Availability',
+		type: 'Type',
+		scope: 'Scope',
 		status: 'Status',
 		method: 'Method',
 		customer_id: 'Customer',

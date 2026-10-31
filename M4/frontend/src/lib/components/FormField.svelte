@@ -20,6 +20,7 @@
 		max,
 		step,
 		autocomplete,
+		maxlength,
 		rows = 4
 	} = $props();
 	function inputValue(
@@ -47,6 +48,7 @@
 				{required}
 				disabled={control.disabled}
 				{rows}
+				{maxlength}
 				aria-invalid={Boolean(control.error)}
 				aria-describedby={control.describedBy}
 				oninput={(/** @type {Event} */ event) =>
@@ -105,6 +107,7 @@
 				{max}
 				step={kind === 'number' ? (step ?? 1) : step}
 				{autocomplete}
+				{maxlength}
 				inputmode={kind === 'money' ? 'decimal' : undefined}
 				aria-invalid={Boolean(control.error)}
 				aria-describedby={control.describedBy}

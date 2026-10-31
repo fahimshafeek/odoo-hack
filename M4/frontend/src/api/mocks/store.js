@@ -160,6 +160,111 @@ export function createPreviewStore() {
 			]
 		}
 	];
+	/** @type {any[]} */ const discounts = [
+		{
+			id: id('d', 1),
+			name: 'Welcome credit',
+			type: 'fixed',
+			value: '500.00',
+			scope: 'subscription',
+			min_purchase: null,
+			min_quantity: null,
+			start_date: offsetDate(-30),
+			end_date: offsetDate(60),
+			usage_limit: 100,
+			used_count: 1,
+			is_active: true,
+			targets: [],
+			editable_fields: ['name', 'end_date', 'is_active', 'usage_limit']
+		}
+	];
+	/** @type {any[]} */ const staff = [
+		{ ...previewSession('staff').user, is_active: true, created_at: new Date().toISOString() }
+	];
+	/** @type {any} */ let profile = { ...customers[0] };
+	function collection(/** @type {string} */ resource) {
+		return /** @type {any[]} */ (
+			/** @type {Record<string, any[]>} */ ({
+				customers,
+				products,
+				plans,
+				taxes,
+				'payment-terms': terms,
+				'quotation-templates': templates,
+				discounts,
+				staff
+			})[resource] ?? []
+		);
+	}
+	function resourceDetail(/** @type {string} */ resource, /** @type {string} */ recordId) {
+		return (
+			collection(resource).find((row) => row.id === recordId) ?? fail('Record not found.', 404)
+		);
+	}
+	function saveResource(
+		/** @type {string} */ resource,
+		/** @type {any} */ body,
+		/** @type {string} */ recordId = ''
+	) {
+		const rows = collection(resource);
+		const row = recordId
+			? resourceDetail(resource, recordId)
+			: {
+					id: id('f', ++sequence),
+					created_at: new Date().toISOString(),
+					is_active: true,
+					attributes: [],
+					used_count: 0
+				};
+		Object.assign(row, body, { updated_at: new Date().toISOString() });
+		if (resource === 'staff') row.role = 'staff';
+		if (resource === 'customers') {
+			row.user_id ??= id('9', ++sequence);
+			row.full_name ??= row.name ?? '';
+			row.company_name ??= '';
+			row.name = row.company_name || row.full_name;
+		}
+		if (resource === 'products' && body.tax_id)
+			row.tax = taxes.find((tax) => tax.id === body.tax_id);
+		if (resource === 'quotation-templates') {
+			row.plan = plans.find((plan) => plan.id === row.plan_id);
+			row.lines = (row.lines ?? []).map((/** @type {any} */ line) => ({
+				...line,
+				product: products.find((product) => product.id === line.product_id)
+			}));
+		}
+		if (resource === 'discounts')
+			row.editable_fields = row.used_count
+				? ['name', 'end_date', 'is_active', 'usage_limit']
+				: Object.keys(row);
+		if (!recordId) rows.push(row);
+		return row;
+	}
+	function attribute(
+		/** @type {string} */ recordId,
+		/** @type {any} */ body,
+		/** @type {string} */ attributeId = '',
+		remove = false
+	) {
+		const product = resourceDetail('products', recordId);
+		if (remove) {
+			product.attributes = product.attributes.filter(
+				(/** @type {any} */ row) => row.id !== attributeId
+			);
+			return product;
+		}
+		const row = attributeId
+			? product.attributes.find((/** @type {any} */ item) => item.id === attributeId)
+			: { id: id('a', ++sequence) };
+		Object.assign(row, body, {
+			values: (body.values ?? []).map((/** @type {any} */ value) => ({
+				...value,
+				id: value.id ?? id('b', ++sequence)
+			}))
+		});
+		if (!attributeId) product.attributes.push(row);
+		return product;
+	}
 	/** @type {any[]} */ const subscriptions = [];
 	/** @type {any[]} */ const invoices = [];
 	/** @type {any[]} */ const payments = [];
@@ -479,8 +584,9 @@ export function createPreviewStore() {
 		/** @type {Record<string, any>} */ query = {},
 		role = 'admin'
 	) {
-		let items =
-			resource === 'subscriptions'
+		let items = ['discounts', 'staff'].includes(resource)
+			? collection(resource)
+			: resource === 'subscriptions'
 				? subscriptions
 						.filter((row) => own(row, role) && (role !== 'customer' || row.status !== 'draft'))
 						.map((row) => subView(row, role))
@@ -509,6 +615,8 @@ export function createPreviewStore() {
 												: resource === 'quotation-templates'
 													? templates
 													: [];
+		if (query.active !== undefined && query.active !== '')
+			items = items.filter((item) => item.is_active === (String(query.active) === 'true'));
 		if (query.q)
 			items = items.filter((item) =>
 				JSON.stringify(item).toLowerCase().includes(String(query.q).toLowerCase())
@@ -685,6 +793,20 @@ export function createPreviewStore() {
 		};
 	}
 	return {
+		resourceDetail,
+		saveResource,
+		attribute,
+		deactivate: (/** @type {string} */ resource, /** @type {string} */ recordId) => {
+			const row = resourceDetail(resource, recordId);
+			row.is_active = false;
+			return row;
+		},
+		profile: () => profile,
+		saveProfile: (/** @type {any} */ body) => {
+			profile = { ...profile, ...body };
+			Object.assign(customers[0], body);
+			return profile;
+		},
 		list,
 		subscription,
 		invoice,

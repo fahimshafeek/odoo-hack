@@ -24,21 +24,23 @@ Reset restores sample records. Actions, payments, PDFs, and billing runs are
 simulated locally; no email is sent and no database is changed. Production builds
 exclude the fixture modules, and `npm run dev` keeps mocks off by default.
 
-| Page                                 | Route                                                |
-| ------------------------------------ | ---------------------------------------------------- |
-| Subscriptions / new / details / edit | `/app/subscriptions`, `/new`, `/:id`, `/:id/edit`    |
-| Invoices / details                   | `/app/invoices`, `/app/invoices/:id`                 |
-| Payments                             | `/app/payments`                                      |
-| Billing runs                         | `/app/billing-runs`                                  |
-| Customer subscriptions / details     | `/portal/subscriptions`, `/portal/subscriptions/:id` |
-| Customer invoices / details          | `/portal/invoices`, `/portal/invoices/:id`           |
+| Page                                 | Route                                                                                                   |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Subscriptions / new / details / edit | `/app/subscriptions`, `/app/subscriptions/new`, `/app/subscriptions/:id`, `/app/subscriptions/:id/edit` |
+| Invoices / details                   | `/app/invoices`, `/app/invoices/:id`                                                                    |
+| Payments                             | `/app/payments`                                                                                         |
+| Billing runs                         | `/app/billing-runs`                                                                                     |
+| Customer subscriptions / details     | `/portal/subscriptions`, `/portal/subscriptions/:id`                                                    |
+| Customer invoices / details          | `/portal/invoices`, `/portal/invoices/:id`                                                              |
 
 The dashboard at `/app/dashboard` includes report summary cards, a monthly revenue
 graph, and overdue invoices. Date controls share a keyboard-accessible calendar
 with month/year navigation and the same field validation as the forms.
 
-Other members own authentication, catalog, rules, customer management,
-profile, and payment history. Their current route components are placeholders.
+All navigation routes now have frontend screens, including customers, products,
+plans, payment terms, templates, taxes, discounts, staff, authentication, profile,
+and customer payment history. Create/edit flows use the shared API boundary;
+preview mode supplies isolated mutable sample records.
 Live API integration and the seeded golden-flow verification are deferred.
 
 ## Foundation hand-off

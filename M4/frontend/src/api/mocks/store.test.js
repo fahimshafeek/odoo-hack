@@ -2,6 +2,37 @@ import { describe, expect, it } from 'vitest';
 import { createPreviewStore, previewSession } from './store.js';
 
 describe('isolated frontend preview scenarios', () => {
+	it('keeps catalog edits, variants and deactivation visible to pickers', () => {
+		const store = createPreviewStore();
+		const product = store.saveResource('products', {
+			name: 'New service',
+			sales_price: '500.00',
+			cost_price: '200.00',
+			type: 'service'
+		});
+		store.attribute(product.id, {
+			name: 'Edition',
+			values: [{ name: 'Plus', extra_price: '25.00' }]
+		});
+		expect(store.product(product.id).attributes[0].values[0].id).toBeTruthy();
+		store.saveResource('products', { name: 'Updated service' }, product.id);
+		expect(store.list('products', { q: 'Updated service', active: 'true' }).total).toBe(1);
+		store.deactivate('products', product.id);
+		expect(store.list('products', { q: 'Updated service', active: 'true' }).total).toBe(0);
+	});
+	it('shares customer contact changes with the profile preview', () => {
+		const store = createPreviewStore();
+		store.saveProfile({ company_name: 'Updated company', phone: '+91 98765 43210' });
+		expect(store.resourceDetail('customers', store.profile().id).company_name).toBe(
+			'Updated company'
+		);
+		const staff = store.saveResource('staff', {
+			full_name: 'New member',
+			email: 'member@example.test'
+		});
+		store.saveResource('staff', { is_active: false }, staff.id);
+		expect(store.resourceDetail('staff', staff.id).is_active).toBe(false);
+	});
 	it('provides canonical page shapes and scoped customer rows', () => {
 		const store = createPreviewStore();
 		const page = store.list('subscriptions', {}, 'customer');

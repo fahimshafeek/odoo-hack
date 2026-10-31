@@ -100,7 +100,9 @@ export const handlers = [
 		'taxes',
 		'payment-terms',
 		'quotation-templates',
-		'billing/runs'
+		'billing/runs',
+		'discounts',
+		'staff'
 	].flatMap((resource) => [
 		http.get(`${base}/${resource}`, ({ request }) =>
 			scenario === 'error'
@@ -137,6 +139,76 @@ export const handlers = [
 				]
 			: [])
 	]),
+
+	...[
+		'products',
+		'plans',
+		'payment-terms',
+		'quotation-templates',
+		'customers',
+		'staff',
+		'taxes',
+		'discounts'
+	].flatMap((resource) => [
+		...(!['products', 'plans'].includes(resource)
+			? [
+					http.get(base + '/' + resource + '/:id', ({ params }) =>
+						respond(() => store.resourceDetail(resource, String(params.id)))
+					)
+				]
+			: []),
+		http.post(base + '/' + resource, async ({ request }) =>
+			respond(() => request.json().then((body) => store.saveResource(resource, body)))
+		),
+		http.patch(base + '/' + resource + '/:id', async ({ params, request }) =>
+			respond(() =>
+				request.json().then((body) => store.saveResource(resource, body, String(params.id)))
+			)
+		),
+		http.delete(base + '/' + resource + '/:id', ({ params }) =>
+			respond(() => store.deactivate(resource, String(params.id)))
+		)
+	]),
+	http.post(base + '/plans/:id/close', ({ params }) =>
+		respond(() => store.deactivate('plans', String(params.id)))
+	),
+	http.post(base + '/products/:id/attributes', async ({ params, request }) =>
+		respond(() => request.json().then((body) => store.attribute(String(params.id), body)))
+	),
+	http.patch(base + '/products/:id/attributes/:attribute', async ({ params, request }) =>
+		respond(() =>
+			request
+				.json()
+				.then((body) => store.attribute(String(params.id), body, String(params.attribute)))
+		)
+	),
+	http.delete(base + '/products/:id/attributes/:attribute', ({ params }) =>
+		respond(() => store.attribute(String(params.id), {}, String(params.attribute), true))
+	),
+	http.get(base + '/me/profile', () => respond(() => store.profile())),
+	http.patch(base + '/me/profile', async ({ request }) =>
+		respond(() => request.json().then((body) => store.saveProfile(body)))
+	),
+	http.post(base + '/auth/signup', async ({ request }) =>
+		respond(async () => {
+			const body = /** @type {any} */ (await request.json());
+			const session = previewSession('customer');
+			store.saveProfile({
+				full_name: body.full_name,
+				company_name: body.company_name,
+				email: body.email,
+				phone: body.phone
+			});
+			return {
+				...session,
+				user: { ...session.user, full_name: body.full_name, email: body.email }
+			};
+		})
+	),
+	http.post(base + '/auth/forgot-password', () =>
+		json({ message: 'If an account exists, a reset link will be sent.' })
+	),
+	http.post(base + '/auth/reset-password', () => json({ message: 'Password updated.' })),
 	http.get(`${base}/products/:id`, ({ params }) => respond(() => store.product(String(params.id)))),
 	http.get(`${base}/plans/:id`, ({ params }) => respond(() => store.plan(String(params.id)))),
 	http.post(`${base}/subscriptions/price-preview`, async ({ request }) => {
