@@ -1,7 +1,7 @@
 <script>
 	import { createQuery } from '@tanstack/svelte-query';
 	import { toStore } from 'svelte/store';
-	import { Play, LoaderCircle } from '@lucide/svelte';
+	import { Play, LoaderCircle, Clock, Cpu, CheckCircle2 } from '@lucide/svelte';
 	import { request } from '#src/api/resources.js';
 	import { useListParams } from '#lib/use-list-params.js';
 	import { formatDate } from '#lib/format.js';
@@ -156,6 +156,53 @@
 					></Card.Root
 				>{/if}
 		</section>{/if}
+	<div data-reveal class="grid gap-4 md:grid-cols-3">
+		<Card.Root>
+			<Card.Header class="pb-2">
+				<Card.Title class="text-sm font-medium flex items-center gap-2">
+					<Clock class="h-4 w-4 text-muted-foreground" />
+					Automated Scheduler
+				</Card.Title>
+			</Card.Header>
+			<Card.Content>
+				<div class="text-base font-semibold">Daily at 00:00 IST</div>
+				<p class="text-xs text-muted-foreground mt-1">Automatic recurring billing runs</p>
+			</Card.Content>
+		</Card.Root>
+
+		<Card.Root>
+			<Card.Header class="pb-2">
+				<Card.Title class="text-sm font-medium flex items-center gap-2">
+					<Cpu class="h-4 w-4 text-muted-foreground" />
+					Worker Daemon
+				</Card.Title>
+			</Card.Header>
+			<Card.Content>
+				<div class="flex items-center gap-2">
+					<span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
+					<span class="text-sm font-medium">Ready</span>
+					<Badge variant="outline" class="text-xs font-mono">python -m app.worker</Badge>
+				</div>
+				<p class="text-xs text-muted-foreground mt-1">Background daemon runner active</p>
+			</Card.Content>
+		</Card.Root>
+
+		<Card.Root>
+			<Card.Header class="pb-2">
+				<Card.Title class="text-sm font-medium flex items-center gap-2">
+					<CheckCircle2 class="h-4 w-4 text-muted-foreground" />
+					Lifecycle Automation
+				</Card.Title>
+			</Card.Header>
+			<Card.Content>
+				<div class="text-xs text-muted-foreground space-y-0.5">
+					<div>✓ Auto-activate quotes on start</div>
+					<div>✓ 30-day renewal notifications</div>
+					<div>✓ Auto-close unrenewed plans</div>
+				</div>
+			</Card.Content>
+		</Card.Root>
+	</div>
 	<div data-reveal>
 		<DataTable
 			{columns}

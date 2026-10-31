@@ -27,6 +27,12 @@ from app.billing.models import BillingRun, Invoice
 from app.payments.models import Payment
 from app.payments.service import mock_pay, record_payment
 from app.billing.pdf import generate_invoice_pdf
+from app.subscriptions.jobs import (
+    activate_due,
+    expire_quotes,
+    auto_close_expired,
+    flag_upcoming_renewals,
+)
 from app.payments.razorpay_client import (
     create_razorpay_order,
     create_razorpay_payment_link,
@@ -332,6 +338,11 @@ def api_trigger_billing_run(
 ):
     require_role("admin", "staff")(user)
     as_of = data.as_of if data and data.as_of else today()
+    activate_due(session, as_of)
+    expire_quotes(session, as_of)
+    auto_close_expired(session, as_of)
+    flag_upcoming_renewals(session, as_of)
+    session.commit()
     run_id = run_billing(SessionLocal, as_of=as_of, triggered_by=user.id)
     return {"billing_run_id": str(run_id), "status": "running"}
 

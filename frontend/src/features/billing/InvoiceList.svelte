@@ -17,6 +17,9 @@
 	import * as Tabs from '#lib/components/ui/tabs/index.js';
 	import CustomerFilter from './CustomerFilter.svelte';
 	import { useInvoices } from './api.js';
+	import { downloadReportCsv } from '#lib/export.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Download } from '@lucide/svelte';
 	/** @type {{portal?: boolean}} */
 	let { portal = false } = $props();
 	const list = useListParams();
@@ -68,7 +71,15 @@
 			subtitle={portal
 				? 'View invoices and make payments.'
 				: 'Review invoices and outstanding balances.'}
-		/>
+		>
+			{#snippet actions()}
+				{#if !portal}
+					<Button variant="outline" onclick={() => downloadReportCsv('overdue')}>
+						<Download data-icon="inline-start" />Export overdue CSV
+					</Button>
+				{/if}
+			{/snippet}
+		</PageHeader>
 	</div>
 	<div data-reveal>
 		<Tabs.Root

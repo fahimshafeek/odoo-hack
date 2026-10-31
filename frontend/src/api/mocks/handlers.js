@@ -356,6 +356,87 @@ export const handlers = [
 			};
 		})
 	),
+	http.get(base + '/reports/upcoming-renewals', () =>
+		respond(() => {
+			if (scenario === 'error') throw new Error('Preview report unavailable.');
+			const rows =
+				scenario === 'empty'
+					? []
+					: store.list('subscriptions', { page_size: 100 }).items;
+			return {
+				items: rows.slice(0, 5).map((row) => ({
+					subscription_id: row.id,
+					number: row.number,
+					customer_name: row.customer?.name ?? 'Customer',
+					plan_name: row.plan?.name ?? 'Standard Plan',
+					expiry_date: row.expiry_date || new Date().toISOString().slice(0, 10),
+					days_left: 15,
+					allow_renew: true
+				})),
+				total: rows.length,
+				page: 1,
+				page_size: 5
+			};
+		})
+	),
+	http.get(base + '/reports/export.csv', ({ request }) => {
+		const type = new URL(request.url).searchParams.get('report') || 'overdue';
+		const csv = `"Report","${type}"\n"Sample","Data"`;
+		return new Response(csv, {
+			headers: {
+				'Content-Type': 'text/csv',
+				'Content-Disposition': `attachment; filename=brightloop_${type}_report.csv`
+			}
+		});
+	}),
+	http.post(`${base}/me/invoices/:id/razorpay/order`, ({ params }) =>
+		respond(() => ({
+			order_id: `order_mock_${String(params.id).slice(0, 8)}`,
+			amount: 50000,
+			currency: 'INR',
+			key_id: 'rzp_test_mock',
+			invoice_id: params.id,
+			invoice_number: 'INV-MOCK',
+			balance: '500.00'
+		}))
+	),
+	http.post(`${base}/invoices/:id/razorpay/order`, ({ params }) =>
+		respond(() => ({
+			order_id: `order_mock_${String(params.id).slice(0, 8)}`,
+			amount: 50000,
+			currency: 'INR',
+			key_id: 'rzp_test_mock',
+			invoice_id: params.id,
+			invoice_number: 'INV-MOCK',
+			balance: '500.00'
+		}))
+	),
+	http.post(`${base}/me/invoices/:id/razorpay/link`, ({ params }) =>
+		respond(() => ({
+			payment_link_id: `plink_mock_${String(params.id).slice(0, 8)}`,
+			short_url: `https://rzp.io/i/mock_${String(params.id).slice(0, 6)}`,
+			amount: 50000,
+			invoice_id: params.id,
+			invoice_number: 'INV-MOCK'
+		}))
+	),
+	http.post(`${base}/invoices/:id/razorpay/link`, ({ params }) =>
+		respond(() => ({
+			payment_link_id: `plink_mock_${String(params.id).slice(0, 8)}`,
+			short_url: `https://rzp.io/i/mock_${String(params.id).slice(0, 6)}`,
+			amount: 50000,
+			invoice_id: params.id,
+			invoice_number: 'INV-MOCK'
+		}))
+	),
+	http.post(`${base}/me/invoices/:id/razorpay/verify`, ({ params }) =>
+		respond(() => ({
+			status: 'captured',
+			payment_id: 'pay_mock_verified',
+			invoice_status: 'paid',
+			amount_paid: '500.00'
+		}))
+	),
 	http.all(`${base}/*`, () =>
 		json(
 			{
